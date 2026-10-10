@@ -20,9 +20,5 @@ pub fn fegetround() -> i32 {
       asm!("mrc p10, 7, {0}, cr1, cr0, 0", out(reg) control_word, options(nostack));
     };
   }
-  #[cfg(all(not(target_abi = "eabihf"), not(target_feature = "vfp2")))]
-  {
-    control_word = FE_TONEAREST as u32;
-  }
   (control_word & 0x00c00000u32) as i32
 }
