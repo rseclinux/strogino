@@ -15,7 +15,7 @@ fn ensure_unique_backtrace() {
 #[inline(always)]
 fn crash_with_unique_backtrace() -> ! {
   ensure_unique_backtrace();
-  loop {}
+  core::intrinsics::abort_immediate();
 }
 
 #[panic_handler]
