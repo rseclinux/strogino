@@ -189,6 +189,93 @@ fn eisel_lemire_64(
   Some(f64::create_value(sign, exp2 as u32, final_mantissa))
 }
 
+#[inline]
+fn eisel_lemire_128<F: FloatBits<StorageType = u128>>(
+  sign: Sign,
+  mantissa: u128,
+  exp10: i32,
+  round: Rounding
+) -> Option<F> {
+  let mut mantissa = mantissa;
+
+  if exp10 < DETAILED_POWERS_OF_TEN_MIN_EXP_10 ||
+    exp10 > DETAILED_POWERS_OF_TEN_MAX_EXP_10
+  {
+    return None;
+  }
+
+  let clz: u32 = mantissa.leading_zeros();
+  mantissa <<= clz;
+
+  let mut exp2: i32 = exp10_to_exp2(exp10) +
+    (F::STORAGE_LEN as i32) +
+    (F::EXPONENT_BIAS as i32) -
+    (clz as i32);
+
+  let pow10: [u64; 2] = DETAILED_POWERS_OF_TEN
+    [(exp10 - DETAILED_POWERS_OF_TEN_MIN_EXP_10) as usize];
+
+  let mut approx_u = u128::from(high64(mantissa)) * u128::from(pow10[1]);
+
+  let approx_middle_a = u128::from(high64(mantissa)) * u128::from(pow10[0]);
+  let approx_middle_b = u128::from(low64(mantissa)) * u128::from(pow10[1]);
+  let approx_middle = approx_middle_a + approx_middle_b;
+
+  let to_add: u128 =
+    if approx_middle < approx_middle_a { 1u128 << 64 } else { 0 };
+  approx_u += to_add;
+
+  let approx_l = u128::from(low64(mantissa)) * u128::from(pow10[0]);
+
+  let final_approx_l =
+    approx_l.checked_add(u128::from(approx_middle) << 64).unwrap_or(0);
+
+  let to_add2: u128 = if final_approx_l < approx_l { 1 } else { 0 };
+  let final_approx_u = approx_u + u128::from(high64(approx_middle)) + to_add2;
+
+  let halfway: u128 =
+    (1 << u128::from(F::STORAGE_LEN - (F::FRACTION_LEN + 3))) - 1;
+
+  if (final_approx_u & halfway) == halfway &&
+    final_approx_l + mantissa < mantissa
+  {
+    return None;
+  }
+
+  let msb: u32 = (final_approx_u >> (F::STORAGE_LEN - 1)) as u32;
+  let mut final_mantissa: u128 =
+    final_approx_u >> (msb + F::STORAGE_LEN - (F::FRACTION_LEN + 3));
+
+  exp2 -= (1 ^ msb) as i32;
+
+  if round == Rounding::ToNearest {
+    if final_approx_l == 0 &&
+      (final_approx_u & halfway) == 0 &&
+      (final_mantissa & 3) == 1
+    {
+      return None;
+    }
+
+    final_mantissa += final_mantissa & 1;
+  } else if round == Rounding::Upward {
+    if final_approx_l > 0 || (final_approx_u & halfway) > 0 {
+      final_mantissa += 2;
+    }
+  }
+
+  final_mantissa >>= 1;
+  if (final_mantissa >> (F::FRACTION_LEN + 1)) > 0 {
+    final_mantissa >>= 1;
+    exp2 += 1;
+  }
+
+  if exp2 - 1 >= (1 << F::EXPONENT_LEN) - 2 {
+    return None;
+  }
+
+  Some(F::create_value(sign, exp2 as u32, final_mantissa))
+}
+
 pub trait EiselLemire: FloatBits {
   fn eisel_lemire(
     sign: Sign,
@@ -261,12 +348,12 @@ impl EiselLemire for f64 {
 impl EiselLemire for F128 {
   #[inline]
   fn eisel_lemire(
-    _sign: Sign,
-    _mantissa: Self::StorageType,
-    _exp10: i32,
-    _round: Rounding
+    sign: Sign,
+    mantissa: Self::StorageType,
+    exp10: i32,
+    round: Rounding
   ) -> Option<Self> {
-    None
+    eisel_lemire_128(sign, mantissa, exp10, round)
   }
 }
 
@@ -274,12 +361,12 @@ impl EiselLemire for F128 {
 impl EiselLemire for F80 {
   #[inline]
   fn eisel_lemire(
-    _sign: Sign,
-    _mantissa: Self::StorageType,
-    _exp10: i32,
-    _round: Rounding
+    sign: Sign,
+    mantissa: Self::StorageType,
+    exp10: i32,
+    round: Rounding
   ) -> Option<Self> {
-    None
+    eisel_lemire_128(sign, mantissa, exp10, round)
   }
 }
 
@@ -518,27 +605,25 @@ fn decimal_exp_to_float<
     }
   }
 
-  if F::SIZE_IN_BYTES <= 8 {
-    if let Some(first) = F::eisel_lemire(sign, mantissa, exp10, round) {
-      if !is_truncated {
+  if let Some(first) = F::eisel_lemire(sign, mantissa, exp10, round) {
+    if !is_truncated {
+      result.error = None;
+      result.value = first;
+      return result;
+    }
+
+    // If the mantissa is truncated, then the result may be off by the LSB, so
+    // check if rounding the mantissa up changes the result. If not, then it's
+    // safe, else use the fallback.
+    if let Some(second) =
+      F::eisel_lemire(sign, mantissa + 1.into(), exp10, round)
+    {
+      if second.get_explicit_mantissa() == first.get_explicit_mantissa() &&
+        second.get_biased_exponent() == first.get_biased_exponent()
+      {
         result.error = None;
         result.value = first;
         return result;
-      }
-
-      // If the mantissa is truncated, then the result may be off by the LSB, so
-      // check if rounding the mantissa up changes the result. If not, then it's
-      // safe, else use the fallback.
-      if let Some(second) =
-        F::eisel_lemire(sign, mantissa + 1.into(), exp10, round)
-      {
-        if second.get_explicit_mantissa() == first.get_explicit_mantissa() &&
-          second.get_biased_exponent() == first.get_biased_exponent()
-        {
-          result.error = None;
-          result.value = first;
-          return result;
-        }
       }
     }
   }
