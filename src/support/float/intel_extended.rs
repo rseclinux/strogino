@@ -568,12 +568,14 @@ impl ConstOne for F80 {
 impl Num for F80 {
   type FromStrRadixErr = ();
 
-  // TODO: port it from num_traits crate someday...
+  // In ouma we won't call those functions
+  // Especially on floating point numbers
+  // Since we already have our own parsers
   fn from_str_radix(
     _str: &str,
     _radix: u32
   ) -> Result<Self, Self::FromStrRadixErr> {
-    todo!()
+    unreachable!()
   }
 }
 
