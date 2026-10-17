@@ -30,6 +30,12 @@ extern "C"
   int rs_wctomb(char*, wchar_t wc);
   size_t rs_mbstowcs(wchar_t* __restrict__s, const char* __restrict__, size_t);
   size_t rs_wcstombs(char* __restrict__, const wchar_t* __restrict__s, size_t);
+  div_t rs_div(int numerator, int denominator);
+  ldiv_t rs_ldiv(long numerator, long denominator);
+  lldiv_t rs_lldiv(long long numerator, long long denominator);
+  int rs_abs(int num);
+  long rs_labs(long num);
+  long long rs_llabs(long long num);
 }
 
 TEST(atof, examples)
@@ -1547,4 +1553,88 @@ TEST(wcstombs, convert)
     ASSERT_EQ(11, rs_wcstombs(buf, L"Düsseldorf", 13));
     ASSERT_THAT(buf, testing::ElementsAreArray("Düsseldorf\0A"));
   }
+}
+
+TEST(div, examples)
+{
+  div_t r = rs_div(5, 2);
+  ASSERT_EQ(2, r.quot);
+  ASSERT_EQ(1, r.rem);
+
+  r = rs_div(-11, 2);
+  ASSERT_EQ(-5, r.quot);
+  ASSERT_EQ(-1, r.rem);
+
+  r = rs_div(-43, -3);
+  ASSERT_EQ(14, r.quot);
+  ASSERT_EQ(-1, r.rem);
+
+  r = rs_div(18, -7);
+  ASSERT_EQ(-2, r.quot);
+  ASSERT_EQ(4, r.rem);
+}
+
+TEST(ldiv, examples)
+{
+  ldiv_t r = rs_ldiv(5, 2);
+  ASSERT_EQ(2, r.quot);
+  ASSERT_EQ(1, r.rem);
+
+  r = rs_ldiv(-11, 2);
+  ASSERT_EQ(-5, r.quot);
+  ASSERT_EQ(-1, r.rem);
+
+  r = rs_ldiv(-43, -3);
+  ASSERT_EQ(14, r.quot);
+  ASSERT_EQ(-1, r.rem);
+
+  r = rs_ldiv(18, -7);
+  ASSERT_EQ(-2, r.quot);
+  ASSERT_EQ(4, r.rem);
+}
+
+TEST(lldiv, examples)
+{
+  lldiv_t r = rs_lldiv(5, 2);
+  ASSERT_EQ(2, r.quot);
+  ASSERT_EQ(1, r.rem);
+
+  r = rs_lldiv(-11, 2);
+  ASSERT_EQ(-5, r.quot);
+  ASSERT_EQ(-1, r.rem);
+
+  r = rs_lldiv(-43, -3);
+  ASSERT_EQ(14, r.quot);
+  ASSERT_EQ(-1, r.rem);
+
+  r = rs_lldiv(18, -7);
+  ASSERT_EQ(-2, r.quot);
+  ASSERT_EQ(4, r.rem);
+}
+
+TEST(abs, example)
+{
+  ASSERT_EQ(0, rs_abs(0));
+  ASSERT_EQ(42, rs_abs(42));
+  ASSERT_EQ(42, rs_abs(-42));
+  ASSERT_EQ(INT_MAX, rs_abs(INT_MAX));
+  ASSERT_EQ(INT_MAX, rs_abs(-INT_MAX));
+}
+
+TEST(labs, example)
+{
+  ASSERT_EQ(0, rs_labs(0));
+  ASSERT_EQ(42, rs_labs(42));
+  ASSERT_EQ(42, rs_labs(-42));
+  ASSERT_EQ(LONG_MAX, rs_labs(LONG_MAX));
+  ASSERT_EQ(LONG_MAX, rs_labs(-LONG_MAX));
+}
+
+TEST(llabs, example)
+{
+  ASSERT_EQ(0, rs_llabs(0));
+  ASSERT_EQ(42, rs_llabs(42));
+  ASSERT_EQ(42, rs_llabs(-42));
+  ASSERT_EQ(LLONG_MAX, rs_llabs(LLONG_MAX));
+  ASSERT_EQ(LLONG_MAX, rs_llabs(-LLONG_MAX));
 }

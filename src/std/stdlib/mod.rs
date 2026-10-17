@@ -1,5 +1,6 @@
 pub mod alloc;
 pub mod constants;
+pub mod div_abs;
 pub mod multibyte;
 pub mod num;
 pub mod strfromfloat;
