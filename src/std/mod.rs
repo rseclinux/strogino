@@ -1,5 +1,6 @@
 pub mod ctype;
 pub mod errno;
+pub mod inttypes;
 pub mod locale;
 pub mod stdio;
 pub mod stdlib;
