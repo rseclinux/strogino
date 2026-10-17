@@ -1,13 +1,6 @@
 use {
-  crate::{
-    allocation::boxed::Box,
-    c_char,
-    c_int,
-    intptr_t,
-    locale_t,
-    std::errno,
-    support::locale
-  },
+  crate::{c_char, c_int, intptr_t, locale_t, std::errno, support::locale},
+  allocator_api2::boxed::Box,
   atomic_refcell::AtomicRefCell,
   core::{ffi, ptr}
 };

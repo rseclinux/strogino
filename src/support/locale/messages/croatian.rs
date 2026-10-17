@@ -1,4 +1,4 @@
-use {super::Messages, crate::allocation::borrow::Cow};
+use {super::Messages, allocation::borrow::Cow};
 
 pub const MISC_MESSAGES: [&'static str; 3] =
   ["Nepoznata greška", "Nepoznati signal", "Signal realnog vremena"];

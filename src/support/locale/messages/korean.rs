@@ -1,4 +1,4 @@
-use {super::Messages, crate::allocation::borrow::Cow};
+use {super::Messages, allocation::borrow::Cow};
 
 pub const MISC_MESSAGES: [&'static str; 3] =
   ["알 수 없는 오류", "알 수 없는 시그널 번", "실제 시각 시그널 번"];

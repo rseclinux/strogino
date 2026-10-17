@@ -19,6 +19,7 @@ default = []
 use_futex_lock = []
 
 [dependencies]
+allocator-api2 = { version = "0.4.0", default-features = false, features = ["alloc"] }
 atomic_refcell = "0.1"
 bnum = { version = "0.14", default-features = false, features = ["numtraits"] }
 bstr = { version = "1.12", default-features = false }

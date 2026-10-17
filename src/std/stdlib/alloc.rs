@@ -3,7 +3,7 @@ use {
     std::errno,
     types::{c_int, max_align_t, size_t}
   },
-  allocation::alloc::{self, Layout},
+  allocator_api2::alloc::{self, Layout},
   core::{ffi::c_void, ptr}
 };
 

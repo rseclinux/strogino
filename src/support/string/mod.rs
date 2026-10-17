@@ -3,7 +3,8 @@ pub mod conversion;
 pub mod error;
 
 use {
-  crate::allocation::{borrow::Cow, ffi::CString, vec::Vec},
+  allocation::{borrow::Cow, ffi::CString},
+  allocator_api2::vec::Vec,
   core::{ffi::CStr, str}
 };
 
@@ -11,7 +12,7 @@ use {
 pub fn strtocstr(s: &str) -> Cow<'static, CStr> {
   let bytes: Vec<u8> = s.bytes().take_while(|&b| b != 0).collect();
 
-  unsafe { Cow::Owned(CString::from_vec_unchecked(bytes)) }
+  unsafe { Cow::Owned(CString::from_vec_unchecked(bytes.to_vec())) }
 }
 
 #[inline]
@@ -25,5 +26,5 @@ pub fn strtowcstr(s: &str) -> Cow<'static, [u32]> {
 
   buf.push('\0' as u32);
 
-  Cow::Owned(buf)
+  Cow::Owned(buf.to_vec())
 }

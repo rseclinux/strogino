@@ -1,9 +1,10 @@
 use {
   super::{LocaleObject, canonicalize_locale, is_posix_locale},
-  crate::{allocation::vec::Vec, c_int, std::errno, support::string},
+  crate::{c_int, std::errno, support::string},
   allocation::{
     borrow::{Cow, ToOwned},
-    string::String
+    string::String,
+    vec::Vec
   },
   bstr::{B, ByteSlice},
   core::{cmp::Ordering, ffi},
@@ -53,7 +54,7 @@ impl<'a> CollateObject<'a> {
     if let Some(collator) = &self.collator {
       let s: &[u8] = &source
         .iter()
-        .filter_map(|c| char::from_u32(*c))
+        .filter_map(|&c| char::from_u32(c))
         .collect::<String>()
         .into_bytes();
       let mut sortkey: Vec<u8> = Vec::new();
