@@ -65,6 +65,9 @@ pub type char8_t = u8;
 pub type char16_t = u16;
 pub type char32_t = u32;
 
+// POSIX types
+pub type time_t = i64;
+
 // Multi-Byte State
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -144,3 +147,10 @@ impl<'a> core::ops::Deref for MBStateLock<'a> {
 pub type mbstate_t = MBState;
 
 pub type locale_t<'a> = *mut crate::support::locale::Locale<'a>;
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[repr(C)]
+pub struct timespec {
+  pub tv_sec: time_t,
+  pub tv_nsec: c_long
+}
