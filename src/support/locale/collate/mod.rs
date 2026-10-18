@@ -3,18 +3,46 @@ use {
   crate::{c_int, std::errno, support::string},
   allocation::{
     borrow::{Cow, ToOwned},
-    string::String,
-    vec::Vec
+    string::String
   },
+  allocator_api2::{collections::TryReserveError, vec::Vec},
   bstr::{B, ByteSlice},
   core::{cmp::Ordering, ffi},
   icu_collator::{
+    CollationKeySink,
     Collator,
     CollatorBorrowed,
     options::{CollatorOptions, Strength}
   },
   icu_locale::Locale
 };
+
+struct VecWrap(pub Vec<u8>);
+
+impl CollationKeySink for VecWrap {
+  type Error = TryReserveError;
+  type State = ();
+  type Output = ();
+
+  #[inline]
+  fn write(
+    &mut self,
+    _: &mut Self::State,
+    buf: &[u8]
+  ) -> Result<(), Self::Error> {
+    self.0.try_reserve_exact(buf.len())?;
+    self.0.extend_from_slice(buf);
+    Ok(())
+  }
+
+  #[inline]
+  fn finish(
+    &mut self,
+    _: Self::State
+  ) -> Result<Self::Output, Self::Error> {
+    Ok(())
+  }
+}
 
 #[derive(Debug)]
 pub struct CollateObject<'a> {
@@ -34,13 +62,13 @@ impl<'a> CollateObject<'a> {
     source: &'a [u8]
   ) -> Cow<'a, [u8]> {
     if let Some(collator) = &self.collator {
-      let mut sortkey: Vec<u8> = Vec::new();
+      let mut sortkey: VecWrap = VecWrap(Vec::new());
 
       if collator.write_sort_key_utf8_to(source, &mut sortkey).is_err() {
         return Cow::Borrowed(&source);
       }
 
-      Cow::Owned(sortkey)
+      Cow::Owned(sortkey.0.to_vec())
     } else {
       Cow::Borrowed(&source)
     }
@@ -52,20 +80,19 @@ impl<'a> CollateObject<'a> {
     source: &'a [u32]
   ) -> Cow<'a, [u32]> {
     if let Some(collator) = &self.collator {
-      let s: &[u8] = &source
+      let s = &source
         .iter()
-        .filter_map(|&c| char::from_u32(c))
-        .collect::<String>()
-        .into_bytes();
-      let mut sortkey: Vec<u8> = Vec::new();
+        .map(|&c| char::from_u32(c).unwrap_or(char::REPLACEMENT_CHARACTER))
+        .collect::<String>();
+      let mut sortkey: VecWrap = VecWrap(Vec::new());
 
-      if collator.write_sort_key_utf8_to(s, &mut sortkey).is_err() {
+      if collator.write_sort_key_to(s, &mut sortkey).is_err() {
         return Cow::Borrowed(&source);
       }
 
-      let result: Vec<u32> = B(&sortkey).chars().map(|c| c as u32).collect();
+      let result: Vec<u32> = B(&sortkey.0).chars().map(|c| c as u32).collect();
 
-      Cow::Owned(result)
+      Cow::Owned(result.to_vec())
     } else {
       Cow::Borrowed(&source)
     }
@@ -91,18 +118,16 @@ impl<'a> CollateObject<'a> {
     rhs: &[u32]
   ) -> Ordering {
     if let Some(collator) = &self.collator {
-      let lhs: &[u8] = &lhs
+      let lhs = &lhs
         .iter()
-        .filter_map(|c| char::from_u32(*c))
-        .collect::<String>()
-        .into_bytes();
-      let rhs: &[u8] = &rhs
+        .map(|&c| char::from_u32(c).unwrap_or(char::REPLACEMENT_CHARACTER))
+        .collect::<String>();
+      let rhs = &rhs
         .iter()
-        .filter_map(|c| char::from_u32(*c))
-        .collect::<String>()
-        .into_bytes();
+        .map(|&c| char::from_u32(c).unwrap_or(char::REPLACEMENT_CHARACTER))
+        .collect::<String>();
 
-      collator.compare_utf8(lhs, rhs)
+      collator.compare(lhs, rhs)
     } else {
       lhs.cmp(rhs)
     }
