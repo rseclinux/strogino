@@ -1,14 +1,7 @@
 use {
   crate::support::sync::SpinLockGuard,
-  core::{
-    borrow::{Borrow, BorrowMut},
-    mem::MaybeUninit
-  }
+  core::borrow::{Borrow, BorrowMut}
 };
-
-#[repr(transparent)]
-#[derive(Clone, Copy, Debug)]
-pub(crate) struct Padding<T: Copy>(MaybeUninit<T>);
 
 // Basic C language types
 pub type int8_t = i8;
@@ -155,13 +148,9 @@ pub type mbstate_t = MBState;
 
 pub type locale_t<'a> = *mut crate::support::locale::Locale<'a>;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 #[repr(C)]
 pub struct timespec {
   pub tv_sec: time_t,
-  #[cfg(target_endian = "big")]
-  __pad: Padding<i32>,
-  pub tv_nsec: c_long,
-  #[cfg(target_endian = "little")]
-  __pad: Padding<i32>
+  pub tv_nsec: i64
 }
