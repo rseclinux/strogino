@@ -139,32 +139,30 @@ pub fn strfromfloat<T: ftoa::DragonFloat>(
 where
   T::Bn: ftoa::DragonInt + bnum::cast::CastFrom<T::StorageType>,
   u8: bnum::cast::CastFrom<T::Bn> + bnum::cast::CastFrom<T::StorageType> {
-  let mut has_conv = false;
   let mut arg = PrintfArgument::default();
   let mut index = 0usize;
-  if format[index] == b'%' {
+
+  if format.get(index) != Some(&b'%') {
+    return Err(FormatError::InvalidArg);
+  }
+  index += 1;
+
+  if format.get(index) == Some(&b'.') {
     index += 1;
-
-    if format[index] == b'.' {
-      index += 1;
-
-      let num = get_number(format, &mut index, &ctype);
-      arg.precision = Some(num as u32);
-    }
-
-    arg.specifier = format[index].into();
-    has_conv = arg.specifier == 'a' ||
-      arg.specifier == 'A' ||
-      arg.specifier == 'F' ||
-      arg.specifier == 'f' ||
-      arg.specifier == 'E' ||
-      arg.specifier == 'e' ||
-      arg.specifier == 'G' ||
-      arg.specifier == 'g';
+    let num = get_number(format, &mut index, &ctype);
+    arg.precision = Some(num as u32);
   }
 
-  if !has_conv {
-    return emitter.emit_format_string(format);
+  let Some(&spec) = format.get(index) else {
+    return Err(FormatError::InvalidArg);
+  };
+  arg.specifier = spec.into();
+  if !matches!(arg.specifier, 'a' | 'A' | 'e' | 'E' | 'f' | 'F' | 'g' | 'G') {
+    return Err(FormatError::InvalidArg);
+  }
+
+  if index + 1 != format.len() {
+    return Err(FormatError::InvalidArg);
   }
 
   if !value.is_finite() {

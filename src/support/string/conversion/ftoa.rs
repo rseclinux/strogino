@@ -126,6 +126,28 @@ struct ScaledValues<T: DragonInt> {
 }
 
 #[inline]
+fn should_round_up<B: DragonInt>(
+  numerator: B,
+  denominator: B,
+  last_digit: u8,
+  round: Rounding,
+  negative: bool
+) -> bool {
+  match round {
+    | Rounding::TowardZero => false,
+    | Rounding::Upward => !negative && numerator != B::ZERO,
+    | Rounding::Downward => negative && numerator != B::ZERO,
+    | Rounding::ToNearest => {
+      match plus_compare(numerator, numerator, denominator) {
+        | core::cmp::Ordering::Greater => true,
+        | core::cmp::Ordering::Less => false,
+        | core::cmp::Ordering::Equal => last_digit % 2 == 1
+      }
+    }
+  }
+}
+
+#[inline]
 fn estimate_power<F: FloatBits>(exponent: i32) -> i32 {
   // This function estimates log10 of v where v = f*2^e (with e == exponent).
   // Note that 10^floor(log10(v)) <= v, but v <= 10^ceil(log10(v)).
@@ -282,7 +304,9 @@ fn fixup_multiply10<B: DragonInt>(
 fn generate_counted_digits<B: DragonInt>(
   count: usize,
   result: &mut DragonReturn,
-  scaled: &mut ScaledValues<B>
+  scaled: &mut ScaledValues<B>,
+  round: Rounding,
+  negative: bool
 ) where
   u8: bnum::cast::CastFrom<B> {
   if count <= 0 {
@@ -301,9 +325,13 @@ fn generate_counted_digits<B: DragonInt>(
 
   let mut digit = u8::cast_from(scaled.numerator / scaled.denominator);
   scaled.numerator = scaled.numerator % scaled.denominator;
-  if plus_compare(scaled.numerator, scaled.numerator, scaled.denominator)
-    .is_ge()
-  {
+  if should_round_up(
+    scaled.numerator,
+    scaled.denominator,
+    digit,
+    round,
+    negative
+  ) {
     digit += 1;
   }
 
@@ -333,7 +361,9 @@ fn generate_counted_digits<B: DragonInt>(
 fn generate_fixed_digits<B: DragonInt>(
   requested: i32,
   result: &mut DragonReturn,
-  scaled: &mut ScaledValues<B>
+  scaled: &mut ScaledValues<B>,
+  round: Rounding,
+  negative: bool
 ) where
   u8: bnum::cast::CastFrom<B> {
   if -(result.exponenta) > requested {
@@ -355,7 +385,7 @@ fn generate_fixed_digits<B: DragonInt>(
     return;
   } else {
     let needed = (result.exponenta + requested) as usize;
-    generate_counted_digits(needed, result, scaled);
+    generate_counted_digits(needed, result, scaled, round, negative);
   }
 }
 
@@ -363,7 +393,7 @@ fn generate_fixed_digits<B: DragonInt>(
 pub fn format_dragon4<T: FloatBits + DragonFloat>(
   value: T,
   precision: i32,
-  _round: Rounding
+  round: Rounding
 ) -> DragonReturn
 where
   T::Bn: DragonInt + bnum::cast::CastFrom<T::StorageType>,
@@ -380,7 +410,13 @@ where
   let mut result = DragonReturn::default();
   result.exponenta = fixup_multiply10(est_power, is_even, &mut scaled);
 
-  generate_fixed_digits(precision, &mut result, &mut scaled);
+  generate_fixed_digits(
+    precision,
+    &mut result,
+    &mut scaled,
+    round,
+    value.is_sign_negative()
+  );
 
   result
 }
@@ -389,7 +425,7 @@ where
 pub fn format_dragon4_exp<T: FloatBits + DragonFloat>(
   value: T,
   precision: i32,
-  _round: Rounding
+  round: Rounding
 ) -> DragonReturn
 where
   T::Bn: DragonInt + bnum::cast::CastFrom<T::StorageType>,
@@ -406,7 +442,13 @@ where
   let mut result = DragonReturn::default();
   result.exponenta = fixup_multiply10(est_power, is_even, &mut scaled);
 
-  generate_counted_digits(precision as usize, &mut result, &mut scaled);
+  generate_counted_digits(
+    precision as usize,
+    &mut result,
+    &mut scaled,
+    round,
+    value.is_sign_negative()
+  );
 
   result
 }
