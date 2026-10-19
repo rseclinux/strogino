@@ -128,7 +128,7 @@ impl<'a> Emitter for StrFromEmitter<'a> {
   }
 }
 
-// Not inlined for the sake of size optimization
+#[inline]
 pub fn strfromfloat<T: ftoa::DragonFloat + CastToDouble>(
   emitter: &mut StrFromEmitter,
   format: &[u8],
