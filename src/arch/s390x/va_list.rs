@@ -1,6 +1,7 @@
-use {crate::support::ffi::va_list::ExtVaList, core::ffi::c_void};
-
-pub type LDBLBytes = [u8; 16];
+use {
+  crate::{support::ffi::va_list::ExtVaList, types::c_longdouble},
+  core::ffi::c_void
+};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
@@ -12,10 +13,11 @@ pub struct ExtVaListInner {
 }
 
 #[inline]
-pub unsafe fn get_long_double_bytes(args: &mut ExtVaList) -> LDBLBytes {
+pub unsafe fn get_long_double_value(args: &mut ExtVaList) -> c_longdouble {
   // SINCE ON ELF S390X LONG DOUBLES ARE PASSED AS REFERENCES
   // ON GPRS YOU CAN LITERALLY DO THE FOLLOWING
   // if GPRs get exhausted then off the stack
   let ptr = unsafe { args.next_arg::<*const [u8; 16]>() };
-  unsafe { ptr.read() }
+  let result = unsafe { ptr.read() };
+  c_longdouble::from_be_bytes(result)
 }

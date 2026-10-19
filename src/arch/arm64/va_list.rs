@@ -1,6 +1,7 @@
-use {crate::support::ffi::va_list::ExtVaList, core::ffi::c_void};
-
-pub type LDBLBytes = [u8; 16];
+use {
+  crate::{support::ffi::va_list::ExtVaList, types::c_longdouble},
+  core::ffi::c_void
+};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
@@ -13,7 +14,7 @@ pub struct ExtVaListInner {
 }
 
 #[inline]
-pub unsafe fn get_long_double_bytes(me: &mut ExtVaList) -> LDBLBytes {
+pub unsafe fn get_long_double_value(me: &mut ExtVaList) -> c_longdouble {
   let dst: [u8; 16];
 
   if !me.inner.vr_top.is_null() {
@@ -23,7 +24,7 @@ pub unsafe fn get_long_double_bytes(me: &mut ExtVaList) -> LDBLBytes {
     };
     let aligned = (ptr as usize + 15) & !15; // Align up
 
-    let src = aligned as *const LDBLBytes;
+    let src = aligned as *const [u8; 16];
     dst = unsafe { src.read() };
 
     me.inner.vr_offs += 16;
@@ -32,11 +33,11 @@ pub unsafe fn get_long_double_bytes(me: &mut ExtVaList) -> LDBLBytes {
     let ptr = me.inner.stack as usize;
     let aligned = (ptr + 15) & !15; // Align up
 
-    let src = aligned as *const LDBLBytes;
+    let src = aligned as *const [u8; 16];
     dst = unsafe { src.read() };
 
     me.inner.stack = (aligned + 16) as *const c_void; // advance pointer for futher reading
   }
 
-  dst
+  c_longdouble::from_ne_bytes(dst)
 }

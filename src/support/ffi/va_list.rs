@@ -1,5 +1,8 @@
 use {
-  crate::arch::va_list::{ExtVaListInner, LDBLBytes, get_long_double_bytes},
+  crate::{
+    arch::va_list::{ExtVaListInner, get_long_double_value},
+    c_longdouble
+  },
   core::{
     ffi::{VaArgSafe, VaList},
     intrinsics::{va_arg, va_copy, va_end},
@@ -36,8 +39,8 @@ impl<'f> ExtVaList<'f> {
   }
 
   #[inline]
-  pub unsafe fn get_ldbl_bytes(&mut self) -> LDBLBytes {
-    unsafe { get_long_double_bytes(self) }
+  pub unsafe fn get_ldbl_bytes(&mut self) -> c_longdouble {
+    unsafe { get_long_double_value(self) }
   }
 }
 
