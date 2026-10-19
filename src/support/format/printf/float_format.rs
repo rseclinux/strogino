@@ -7,7 +7,8 @@ use {
       locale::{ctype::CtypeObject, numeric::NumericObject},
       string::conversion::{
         ftoa::{self, DragonFloat},
-        itoa
+        itoa,
+        ryu
       },
       traits::float::FloatBits
     },
@@ -249,6 +250,219 @@ where
 
     let itoa_result = itoa::format_signed(
       x,
+      itoa::ItoaFormat::Decimal,
+      &mut itoa_buf,
+      lowercase,
+      false
+    );
+
+    let exponent_mark =
+      if lowercase { ascii::Char::SmallE } else { ascii::Char::CapitalE };
+
+    if result.ndigits == 0 {
+      result.digits[0] = ascii::Char::Digit0;
+      ndigits = 1;
+    }
+
+    let print_radixchar =
+      (arg.flags.alternate_form || precision > 0) && decimal_point != '\0';
+
+    emitter.emit_ascii_char(result.digits[0])?;
+    if print_radixchar {
+      emitter.emit_unicode_char(decimal_point)?;
+    }
+    for i in 1..ndigits {
+      emitter.emit_ascii_char(result.digits[i])?;
+    }
+    for _ in ndigits..(precision as usize + 1) {
+      emitter.emit_ascii_char(ascii::Char::Digit0)?;
+    }
+    emitter.emit_ascii_char(exponent_mark)?;
+    if negative_exponent {
+      emitter.emit_ascii_char(ascii::Char::HyphenMinus)?;
+    } else {
+      emitter.emit_ascii_char(ascii::Char::PlusSign)?;
+    }
+    const MIN_EXP_WIDTH: usize = 2;
+    let pad_zeroes = MIN_EXP_WIDTH.saturating_sub(itoa_result.len());
+    for _ in 0..pad_zeroes {
+      emitter.emit_ascii_char(ascii::Char::Digit0)?;
+    }
+    for d in itoa_result {
+      emitter.emit_ascii_char(*d)?;
+    }
+  }
+
+  if arg.flags.left_align {
+    emitter.pad_to(arg, ascii::Char::Space, width)?;
+  }
+
+  Ok(())
+}
+
+#[inline]
+pub fn format_float_ryu<E: Emitter>(
+  emitter: &mut E,
+  num: f64,
+  conv: FloatConv,
+  arg: &PrintfArgument,
+  ctype: &CtypeObject,
+  numeric: &NumericObject
+) -> Result<(), FormatError> {
+  let decimal_point: char = numeric.get_decimal_point().unwrap_or('\0');
+  let thousands_sep: char = numeric.get_thousands_sep().unwrap_or('\0');
+  let lowercase = (ctype.casemap.islower)(arg.specifier as u32);
+
+  let grouping = numeric.grouping.as_slice();
+  let gl = grouping.iter().copied().take_while(|&x| x != b'\0').count();
+  let grouping = &grouping[..gl];
+
+  let mut precision = arg.precision.unwrap_or(6);
+  let mut e_mode = false;
+
+  let sign = if num.is_sign_negative() {
+    Some(ascii::Char::HyphenMinus)
+  } else if arg.flags.prepend_plus {
+    Some(ascii::Char::PlusSign)
+  } else if arg.flags.space_prefix {
+    Some(ascii::Char::Space)
+  } else {
+    None
+  };
+
+  if conv == FloatConv::Scientific {
+    precision = f64::DECIMAL_DIG.min(precision + 1);
+    e_mode = true;
+  } else if conv == FloatConv::Automatic {
+    precision = precision.max(1);
+    precision = f64::DECIMAL_DIG.min(precision);
+  }
+
+  let mut result = ryu::RyuReturn::default();
+  if num.is_zero() {
+    result.digits[0] = ascii::Char::Digit0;
+    result.ndigits = 1;
+    result.exponenta = 0;
+  } else if conv == FloatConv::Fixed {
+    result = ryu::format_ryu(num, precision as i32, get_rounding());
+  } else {
+    result = ryu::format_ryu_exp(num, precision as i32, get_rounding());
+  }
+  let mut ndigits = result.ndigits;
+  let exponenta = result.exponenta;
+  let x = exponenta + 1;
+
+  if conv == FloatConv::Automatic {
+    let save = precision;
+
+    if !arg.flags.alternate_form {
+      // remove trailing zeroes
+      while ndigits > 1 && result.digits[ndigits - 1] == ascii::Char::Digit0 {
+        ndigits -= 1;
+      }
+      precision = ndigits as u32;
+    }
+
+    // Guess if we need scientific mode or we're good with fixed one
+    if -4 <= exponenta && exponenta < (save as i32) {
+      precision = (precision as i32 - (exponenta + 1)).max(0) as u32;
+    } else {
+      e_mode = true;
+      precision = precision.saturating_sub(1);
+    }
+  } else if conv == FloatConv::Scientific {
+    precision = precision.saturating_sub(1);
+  }
+
+  let mut left_digits_with_grouping = x.max(1) as usize;
+  let mut ng = NumericGrouping::new(grouping, left_digits_with_grouping);
+  left_digits_with_grouping +=
+    ng.width * E::get_unicode_char_len(thousands_sep).max(1);
+
+  let use_grouping = arg.flags.group_decimals &&
+    !grouping.is_empty() &&
+    thousands_sep != '\0' &&
+    conv != FloatConv::Scientific;
+
+  let mut width: usize;
+  if e_mode {
+    let mut ed: usize = 2;
+    let mut t = exponenta.unsigned_abs() / 100;
+    while t > 0 {
+      ed += 1;
+      t /= 10;
+    }
+    width = 3 + ed;
+  } else {
+    width = left_digits_with_grouping;
+  }
+
+  if sign.is_some() {
+    width += 1;
+  }
+  if precision != 0 {
+    width += (precision + 1) as usize;
+  } else if arg.flags.alternate_form {
+    width += 1;
+  }
+
+  let zero_pad = arg.flags.leading_zeroes && !arg.flags.left_align;
+
+  if !arg.flags.left_align && !zero_pad {
+    emitter.pad_to(arg, ascii::Char::Space, width)?;
+  }
+
+  if let Some(s) = sign {
+    emitter.emit_ascii_char(s)?;
+  }
+
+  if zero_pad {
+    emitter.pad_to(arg, ascii::Char::Digit0, width)?;
+  }
+
+  if !e_mode {
+    let print_radixchar =
+      (arg.flags.alternate_form || precision > 0) && decimal_point != '\0';
+
+    let mut position: isize;
+    let mut idx: isize;
+    if x >= 1 {
+      position = -(x as isize);
+      idx = 0;
+    } else {
+      position = -1;
+      idx = (x - 1) as isize;
+    }
+
+    while position < (precision as isize) {
+      if position < 0 && use_grouping {
+        if ng.step() {
+          emitter.emit_unicode_char(thousands_sep)?;
+        }
+      }
+
+      let digit = if idx >= 0 && (idx as usize) < ndigits {
+        result.digits[idx as usize]
+      } else {
+        ascii::Char::Digit0
+      };
+
+      emitter.emit_ascii_char(digit)?;
+
+      idx += 1;
+      position += 1;
+
+      if position == 0 && print_radixchar {
+        emitter.emit_unicode_char(decimal_point)?;
+      }
+    }
+  } else {
+    let negative_exponent = exponenta < 0;
+
+    let mut itoa_buf = [ascii::Char::Null; size_of::<intmax_t>() * 8];
+
+    let itoa_result = itoa::format_signed(
+      exponenta,
       itoa::ItoaFormat::Decimal,
       &mut itoa_buf,
       lowercase,

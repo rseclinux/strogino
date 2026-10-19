@@ -26,25 +26,24 @@ impl Default for RyuReturn {
 fn resolve_round_up(
   round: &Rounding,
   last_digit: u32,
-  trailing_zeros: bool
+  trailing_zeros: bool,
+  negative: bool
 ) -> i32 {
+  let inexact = last_digit != 0 || !trailing_zeros;
+
   match round {
-    | Rounding::TowardZero | Rounding::Downward => 0,
-    | Rounding::Upward => {
-      if last_digit != 0 || !trailing_zeros {
-        1
+    | Rounding::TowardZero => 0,
+    | Rounding::Upward => i32::from(!negative && inexact),
+    | Rounding::Downward => i32::from(negative && inexact),
+    | Rounding::ToNearest => {
+      if last_digit != 5 {
+        i32::from(last_digit > 5)
+      } else if trailing_zeros {
+        2
       } else {
-        0
+        1
       }
     },
-    | Rounding::ToNearest => {
-      // Standard round-half-to-even
-      if last_digit != 5 || !trailing_zeros {
-        i32::from(last_digit > 5) // 0 or 1
-      } else {
-        2 // exact tie: need to inspect parity
-      }
-    }
   }
 }
 
@@ -483,7 +482,12 @@ pub fn format_ryu(
         let req2: i32 = -exponent - precision - 1;
         let trailing_zeros =
           req2 <= 0 || (req2 < 60 && multiple_of_pow2(mantissa, req2 as u32));
-        round_up = resolve_round_up(&round, last_digit, trailing_zeros);
+        round_up = resolve_round_up(
+          &round,
+          last_digit,
+          trailing_zeros,
+          value.is_sign_negative()
+        );
         if max > 0 {
           append_c_digits(max, digits, &mut buffer[index..]);
           index += max;
@@ -681,7 +685,12 @@ pub fn format_ryu_exp(
     let req5: i32 = -rexp;
     trailing_zeros = trailing_zeros && multiple_of_pow5(mantissa, req5 as u32);
   }
-  let mut round_up = resolve_round_up(&round, last_digit, trailing_zeros);
+  let mut round_up = resolve_round_up(
+    &round,
+    last_digit,
+    trailing_zeros,
+    value.is_sign_negative()
+  );
 
   if printed != 0 {
     if block == 0 {

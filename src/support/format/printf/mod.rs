@@ -1,11 +1,43 @@
 use {
   super::{error::FormatError, length::LengthModifier},
-  crate::support::traits::char::CharToAscii,
+  crate::support::{
+    float::f128::F128,
+    traits::{char::CharToAscii, float::Float}
+  },
   core::ascii
 };
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+use crate::support::float::intel_extended::F80;
+
 pub mod float_format;
 pub mod strfrom;
+
+pub trait CastToDouble: Float {
+  fn cast_to_double(self) -> f64;
+}
+
+impl CastToDouble for f64 {
+  #[inline]
+  fn cast_to_double(self) -> f64 {
+    self
+  }
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+impl CastToDouble for F80 {
+  #[inline]
+  fn cast_to_double(self) -> f64 {
+    self.as_f64()
+  }
+}
+
+impl CastToDouble for F128 {
+  #[inline]
+  fn cast_to_double(self) -> f64 {
+    self.as_f64()
+  }
+}
 
 pub trait Emitter {
   type FormatChar: Copy + Into<CharToAscii>;

@@ -1,5 +1,5 @@
 use {
-  super::{Emitter, PrintfArgument, float_format},
+  super::{CastToDouble, Emitter, PrintfArgument, float_format},
   crate::{
     size_t,
     std::stdlib,
@@ -129,7 +129,7 @@ impl<'a> Emitter for StrFromEmitter<'a> {
 }
 
 // Not inlined for the sake of size optimization
-pub fn strfromfloat<T: ftoa::DragonFloat>(
+pub fn strfromfloat<T: ftoa::DragonFloat + CastToDouble>(
   emitter: &mut StrFromEmitter,
   format: &[u8],
   value: T,
@@ -169,34 +169,78 @@ where
     return float_format::format_non_finite(emitter, value, &arg, ctype);
   }
 
+  let arg_double = value.cast_to_double();
+
+  let e = value.get_explicit_exponent();
+  let use_ryu = (f64::MIN_EXP - 1..=f64::MAX_EXP - 1).contains(&e);
+
   match arg.specifier {
     | 'a' | 'A' => float_format::format_float_hexadecimal_typed(
       emitter, value, &arg, ctype, numeric
     ),
-    | 'f' | 'F' => float_format::format_float_dragon(
-      emitter,
-      value,
-      float_format::FloatConv::Fixed,
-      &arg,
-      ctype,
-      numeric
-    ),
-    | 'g' | 'G' => float_format::format_float_dragon(
-      emitter,
-      value,
-      float_format::FloatConv::Automatic,
-      &arg,
-      ctype,
-      numeric
-    ),
-    | 'e' | 'E' => float_format::format_float_dragon(
-      emitter,
-      value,
-      float_format::FloatConv::Scientific,
-      &arg,
-      ctype,
-      numeric
-    ),
+    | 'f' | 'F' => {
+      if use_ryu {
+        float_format::format_float_ryu(
+          emitter,
+          arg_double,
+          float_format::FloatConv::Fixed,
+          &arg,
+          ctype,
+          numeric
+        )
+      } else {
+        float_format::format_float_dragon(
+          emitter,
+          value,
+          float_format::FloatConv::Fixed,
+          &arg,
+          ctype,
+          numeric
+        )
+      }
+    },
+    | 'g' | 'G' => {
+      if use_ryu {
+        float_format::format_float_ryu(
+          emitter,
+          arg_double,
+          float_format::FloatConv::Automatic,
+          &arg,
+          ctype,
+          numeric
+        )
+      } else {
+        float_format::format_float_dragon(
+          emitter,
+          value,
+          float_format::FloatConv::Automatic,
+          &arg,
+          ctype,
+          numeric
+        )
+      }
+    },
+    | 'e' | 'E' => {
+      if use_ryu {
+        float_format::format_float_ryu(
+          emitter,
+          arg_double,
+          float_format::FloatConv::Scientific,
+          &arg,
+          ctype,
+          numeric
+        )
+      } else {
+        float_format::format_float_dragon(
+          emitter,
+          value,
+          float_format::FloatConv::Scientific,
+          &arg,
+          ctype,
+          numeric
+        )
+      }
+    },
     | _ => Err(FormatError::InvalidArg)
   }
 }
