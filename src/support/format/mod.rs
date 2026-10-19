@@ -6,6 +6,7 @@ use crate::support::{
 pub mod error;
 pub mod grouping;
 pub mod length;
+pub mod printf;
 pub mod scanf;
 
 #[inline]

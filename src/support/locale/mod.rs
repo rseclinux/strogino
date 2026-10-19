@@ -7,16 +7,16 @@ pub mod time;
 
 use {
   crate::{
-    allocation::{
-      format,
-      string::{String, ToString}
-    },
     c_char,
     c_int,
     intptr_t,
     locale_t,
     std::{errno, locale},
     support::{locale::locale::LC_GLOBAL_LOCALE, string::cbuf::CBufWriter}
+  },
+  allocation::{
+    format,
+    string::{String, ToString}
   },
   atomic_refcell::{AtomicRef, AtomicRefCell, AtomicRefMut},
   core::{cell::UnsafeCell, ffi, fmt::Write, ptr}
@@ -191,6 +191,21 @@ impl<'a> Locale<'a> {
   }
 
   #[inline]
+  pub const fn global() -> Self {
+    Self {
+      lc_all: AtomicRefCell::new([0; 1024]),
+      langinfo: AtomicRefCell::new([0; 1024]),
+      localeconv: AtomicRefCell::new(unsafe { core::mem::zeroed() }),
+      collate: AtomicRefCell::new(None),
+      ctype: AtomicRefCell::new(None),
+      messages: AtomicRefCell::new(None),
+      monetary: AtomicRefCell::new(None),
+      numeric: AtomicRefCell::new(None),
+      time: AtomicRefCell::new(None)
+    }
+  }
+
+  #[inline]
   pub fn setlocale(
     &self,
     category: c_int,
@@ -310,19 +325,8 @@ pub struct SyncLocale {
 }
 unsafe impl Sync for SyncLocale {}
 
-pub static GLOBAL_LOCALE: SyncLocale = SyncLocale {
-  inner: UnsafeCell::new(Locale {
-    lc_all: AtomicRefCell::new([0; 1024]),
-    langinfo: AtomicRefCell::new([0; 1024]),
-    localeconv: AtomicRefCell::new(unsafe { core::mem::zeroed() }),
-    collate: AtomicRefCell::new(None),
-    ctype: AtomicRefCell::new(None),
-    messages: AtomicRefCell::new(None),
-    monetary: AtomicRefCell::new(None),
-    numeric: AtomicRefCell::new(None),
-    time: AtomicRefCell::new(None)
-  })
-};
+pub static GLOBAL_LOCALE: SyncLocale =
+  SyncLocale { inner: UnsafeCell::new(Locale::global()) };
 
 pub static DEFAULT_LOCALE: SyncLocale =
   SyncLocale { inner: UnsafeCell::new(Locale::new()) };

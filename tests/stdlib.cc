@@ -36,6 +36,9 @@ extern "C"
   int rs_abs(int num);
   long rs_labs(long num);
   long long rs_llabs(long long num);
+  int rs_strfromf(char* s, size_t n, const char* format, float fp);
+  int rs_strfromd(char* s, size_t n, const char* format, double fp);
+  int rs_strfroml(char* s, size_t n, const char* format, long double fp);
 }
 
 TEST(atof, examples)
@@ -1637,4 +1640,148 @@ TEST(llabs, example)
   ASSERT_EQ(42, rs_llabs(-42));
   ASSERT_EQ(LLONG_MAX, rs_llabs(LLONG_MAX));
   ASSERT_EQ(LLONG_MAX, rs_llabs(-LLONG_MAX));
+}
+
+/*
+ * Copyright (c) 2026 Faraz Vahedi <kfv@kfv.io>
+ *
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
+#define FBUF 8192
+
+static inline void
+check_l(const char* fmt, long double val)
+{
+  fesetround(FE_TONEAREST);
+
+  char got[FBUF], ref[FBUF], lfmt[32];
+  int rlen, glen;
+
+  /*
+   * snprintf requires the 'L' length modifier for long double.
+   */
+  snprintf(lfmt,
+           sizeof(lfmt),
+           "%.*sL%c",
+           (int)(strlen(fmt) - 1),
+           fmt,
+           fmt[strlen(fmt) - 1]);
+  rlen = snprintf(ref, sizeof(ref), lfmt, val);
+  glen = rs_strfroml(got, sizeof(got), fmt, val);
+  ASSERT_STREQ(ref, got);
+  ASSERT_EQ(glen, rlen);
+}
+
+TEST(strfroml, fixed)
+{
+  check_l("%f", 0.0L);
+  check_l("%f", 1.0L);
+  check_l("%f", -1.0L);
+  check_l("%f", 3.14159265358979323846L);
+  check_l("%.0f", 3.5L);
+  check_l("%.2f", 3.14159L);
+  check_l("%.15f", 1.0L / 3.0L);
+  check_l("%f", LDBL_MAX);
+  check_l("%f", LDBL_MIN);
+}
+
+TEST(strfroml, scientific)
+{
+  char buf[FBUF];
+
+  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+
+  check_l("%e", 0.0L);
+  check_l("%e", 1.0L);
+  check_l("%e", -1.0L);
+  check_l("%e", 3.14159265358979323846L);
+  check_l("%E", 2.71828182845904523536L);
+  check_l("%.2e", 12345.6789L);
+  check_l("%.0e", 3.14L);
+  check_l("%e", LDBL_MAX);
+  check_l("%e", LDBL_MIN);
+
+  rs_strfroml(buf, sizeof(buf), "%e", 1.0L);
+  ASSERT_STREQ("1.000000e+00", buf);
+}
+
+TEST(strfroml, automatic)
+{
+  char buf[FBUF];
+
+  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+
+  check_l("%g", 0.0L);
+  check_l("%g", 1.0L);
+  check_l("%g", 100000.0L);
+  check_l("%g", 1000000.0L);
+  check_l("%g", 0.0001L);
+  check_l("%g", 0.00001L);
+  check_l("%G", 1.23e10L);
+  check_l("%.2g", 3.14159L);
+  check_l("%.0g", 3.14159L);
+
+  rs_strfroml(buf, sizeof(buf), "%g", 1.0L);
+  ASSERT_STREQ("1", buf);
+}
+
+TEST(strfroml, hexadecimal)
+{
+  char buf[FBUF];
+
+  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+
+  check_l("%a", 0.0L);
+  check_l("%a", 1.0L);
+  check_l("%a", 0.5L);
+  check_l("%a", -1.0L);
+  check_l("%A", 1.0L);
+  check_l("%.4a", 1.0L / 3.0L);
+  check_l("%.0a", 1.5L);
+  check_l("%a", LDBL_MAX);
+  check_l("%a", LDBL_MIN);
+
+  rs_strfroml(buf, sizeof(buf), "%a", 1.0L);
+#if LDBL_TYPE == LDBL_IS_F80
+  ASSERT_STREQ("0x8p-3", buf);
+#else
+  ASSERT_STREQ("0x1p+0", buf);
+#endif
+}
+
+TEST(strfroml, inf_nan)
+{
+  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+
+  check_l("%f", INFINITY);
+  check_l("%f", -INFINITY);
+  check_l("%f", NAN);
+  check_l("%e", INFINITY);
+  check_l("%g", INFINITY);
+  check_l("%a", INFINITY);
+  check_l("%F", INFINITY);
+  check_l("%f", -0.0L);
+  check_l("%g", -0.0L);
+#ifdef __HAVE_LONG_DOUBLE
+  check_l("%.20f", 1.0L / 3.0L);
+  check_l("%.20e", 1.0L / 7.0L);
+#endif
+}
+
+TEST(strfroml, truncation)
+{
+  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+
+  char buf[FBUF];
+  int ret;
+
+  buf[0] = 'X';
+  ret = rs_strfroml(buf, 0, "%f", 1.0L);
+  ASSERT_GT(ret, 0);
+  ASSERT_EQ(buf[0], 'X');
+
+  ret = rs_strfroml(buf, 5, "%.6f", 1.0L);
+  ASSERT_EQ(ret, 8);
+  ASSERT_EQ(buf[4], '\0');
 }
