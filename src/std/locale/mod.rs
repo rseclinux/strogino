@@ -185,6 +185,7 @@ extern "C" fn rs_setlocale(
   ptr::null_mut()
 }
 
+#[inline]
 fn newlocale_inner(
   mask: c_int,
   name: *const c_char,

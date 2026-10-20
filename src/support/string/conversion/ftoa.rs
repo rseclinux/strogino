@@ -100,7 +100,7 @@ impl DragonFloat for F80 {
 }
 
 // Enough buffer size to store minimal subnormal values of long double
-const DRAGON_STRING_BUFSZ: usize = 16384 + 1024;
+const DRAGON_STRING_BUFSZ: usize = 16384 + 128;
 
 pub struct DragonReturn {
   pub digits: [ascii::Char; DRAGON_STRING_BUFSZ],
