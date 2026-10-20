@@ -49,7 +49,7 @@ pub fn strtoint<T: Into<CharToAscii> + Copy, I>(
   ctype: &CtypeObject
 ) -> StrToIntResult<I>
 where
-  I: num_traits::PrimInt + num_traits::WrappingNeg + core::ops::DivAssign {
+  I: num_traits::PrimInt + num_traits::WrappingNeg {
   let min_value = I::min_value();
   let max_value = I::max_value();
   let is_unsigned = min_value == I::zero();
@@ -104,30 +104,28 @@ where
     }
   }
 
-  let radix = match I::from(base) {
-    | Some(radix) => radix,
-    | None => {
-      result.error = Some(StrToError::InvalidNumber);
-      return result;
-    }
-  };
-
-  let mut cutoff: I;
-  let cutlim: I;
+  let radix_u = base as u128;
+  let mut acc: u128 = 0;
+  let mut cutoff: u128;
+  let cutlim: u128;
 
   if is_unsigned {
-    cutoff = max_value / radix;
-    cutlim = max_value % radix;
+    let max = max_value.to_u128().unwrap_or(0);
+    cutoff = max / radix_u;
+    cutlim = max % radix_u;
   } else {
+    let max = max_value.to_u128().unwrap_or(0);
     cutoff = if negative {
-      let prod = min_value.saturating_add(max_value);
-      let prod = prod.wrapping_neg();
-      prod.saturating_add(max_value)
+      (min_value + max_value)
+        .wrapping_neg()
+        .to_u128()
+        .and_then(|c| Some(c + max))
+        .unwrap_or(0)
     } else {
-      max_value
+      max
     };
-    cutlim = cutoff % radix;
-    cutoff /= radix;
+    cutlim = cutoff % radix_u;
+    cutoff /= radix_u;
   }
 
   while let Some(ch) = get_ascii_char_with_index(src, index) {
@@ -146,20 +144,20 @@ where
       break;
     }
 
-    if digit >= radix {
+    if digit.to_u128() >= Some(radix_u) {
       break;
     }
 
     has_number = true;
 
     if has_overflow ||
-      result.value > cutoff ||
-      (result.value == cutoff && digit > cutlim)
+      acc > cutoff ||
+      (acc == cutoff && digit.to_u128() > Some(cutlim))
     {
       has_overflow = true;
     } else {
-      result.value = result.value * radix;
-      result.value = result.value + digit;
+      acc *= radix_u;
+      acc += digit.to_u128().unwrap_or(0);
     }
 
     index += 1;
@@ -179,7 +177,13 @@ where
       }
       result.error = Some(StrToError::Range);
     } else if negative {
-      result.value = result.value.wrapping_neg();
+      result.value = if is_unsigned {
+        I::from(acc).unwrap_or(max_value).wrapping_neg()
+      } else {
+        I::from(acc).map(|v| v.wrapping_neg()).unwrap_or(min_value)
+      };
+    } else {
+      result.value = I::from(acc).unwrap_or(max_value);
     }
   }
 
