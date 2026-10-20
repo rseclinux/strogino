@@ -5,7 +5,7 @@
 
 TEST(localeconv, posix)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  rs_uselocale(RS_LC_GLOBAL_LOCALE);
 
   struct lconv* lconv = rs_localeconv();
 

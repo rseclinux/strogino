@@ -1,5 +1,12 @@
 use {
-  crate::{c_char, c_int, intptr_t, locale_t, std::errno, support::locale},
+  crate::{
+    c_char,
+    c_int,
+    intptr_t,
+    locale_t,
+    std::errno,
+    support::locale::{self, LocaleObject, get_slot}
+  },
   allocator_api2::boxed::Box,
   atomic_refcell::AtomicRefCell,
   core::{ffi, ptr}
@@ -31,7 +38,7 @@ pub const LC_ALL_MASK: c_int = LC_CTYPE_MASK |
 pub const LC_GLOBAL_LOCALE: locale_t = -1 as intptr_t as locale_t;
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct lconv {
   pub decimal_point: *mut c_char,
   pub thousands_sep: *mut c_char,
@@ -63,68 +70,44 @@ unsafe impl Send for lconv {}
 unsafe impl Sync for lconv {}
 
 impl lconv {
-  pub fn from_locale(locale: &locale::Locale<'static>) -> Self {
-    let monetary = locale::get_slot_mut(&locale.monetary);
-    let numeric = locale::get_slot_mut(&locale.numeric);
-
-    let grouping: *mut c_char = if numeric.grouping.is_empty() {
-      let slice: &[u8] = &[b'\0'];
-      slice.as_ptr() as *mut u8 as *mut c_char
-    } else {
-      numeric.grouping.as_slice().as_ptr() as *mut u8 as *mut c_char
-    };
-    let mon_grouping: *mut c_char = if monetary.mon_grouping.is_empty() {
-      let slice: &[u8] = &[b'\0'];
-      slice.as_ptr() as *mut u8 as *mut c_char
-    } else {
-      monetary.mon_grouping.as_slice().as_ptr() as *mut u8 as *mut c_char
-    };
-    let int_curr_symbol: *mut c_char = if monetary.int_curr_symbol.is_empty() {
-      let slice: &[u8] = &[b'\0'];
-      slice.as_ptr() as *mut u8 as *mut c_char
-    } else {
-      monetary.int_curr_symbol.as_slice().as_ptr() as *mut u8 as *mut c_char
-    };
-
+  #[inline]
+  pub const fn new() -> Self {
     Self {
-      decimal_point: numeric.decimal_point.as_ptr().cast_mut(),
-      thousands_sep: numeric.thousands_sep.as_ptr().cast_mut(),
-      grouping: grouping,
-      int_curr_symbol: int_curr_symbol,
-      currency_symbol: monetary.currency_symbol.as_ptr().cast_mut(),
-      mon_decimal_point: monetary.mon_decimal_point.as_ptr().cast_mut(),
-      mon_thousands_sep: monetary.mon_thousands_sep.as_ptr().cast_mut(),
-      mon_grouping: mon_grouping,
-      positive_sign: monetary.positive_sign.as_ptr().cast_mut(),
-      negative_sign: monetary.negative_sign.as_ptr().cast_mut(),
-      int_frac_digits: monetary.int_frac_digits,
-      frac_digits: monetary.frac_digits,
-      p_cs_precedes: monetary.p_cs_precedes,
-      p_sep_by_space: monetary.p_sep_by_space,
-      n_cs_precedes: monetary.n_cs_precedes,
-      n_sep_by_space: monetary.n_sep_by_space,
-      p_sign_posn: monetary.p_sign_posn,
-      n_sign_posn: monetary.n_sign_posn,
-      int_p_cs_precedes: monetary.int_p_cs_precedes,
-      int_p_sep_by_space: monetary.int_p_sep_by_space,
-      int_n_cs_precedes: monetary.int_n_cs_precedes,
-      int_n_sep_by_space: monetary.int_n_sep_by_space,
-      int_p_sign_posn: monetary.int_p_sign_posn,
-      int_n_sign_posn: monetary.int_n_sign_posn
+      decimal_point: c".".as_ptr().cast_mut(),
+      thousands_sep: c"".as_ptr().cast_mut(),
+      grouping: c"".as_ptr().cast_mut(),
+      int_curr_symbol: c"".as_ptr().cast_mut(),
+      currency_symbol: c"".as_ptr().cast_mut(),
+      mon_decimal_point: c"".as_ptr().cast_mut(),
+      mon_thousands_sep: c"".as_ptr().cast_mut(),
+      mon_grouping: c"".as_ptr().cast_mut(),
+      positive_sign: c"".as_ptr().cast_mut(),
+      negative_sign: c"".as_ptr().cast_mut(),
+      int_frac_digits: c_char::MAX,
+      frac_digits: c_char::MAX,
+      p_cs_precedes: c_char::MAX,
+      p_sep_by_space: c_char::MAX,
+      n_cs_precedes: c_char::MAX,
+      n_sep_by_space: c_char::MAX,
+      p_sign_posn: c_char::MAX,
+      n_sign_posn: c_char::MAX,
+      int_p_cs_precedes: c_char::MAX,
+      int_p_sep_by_space: c_char::MAX,
+      int_n_cs_precedes: c_char::MAX,
+      int_n_sep_by_space: c_char::MAX,
+      int_p_sign_posn: c_char::MAX,
+      int_n_sign_posn: c_char::MAX
     }
   }
 }
 
 #[inline]
-fn swap<T>(
-  lhs: &AtomicRefCell<T>,
-  rhs: &AtomicRefCell<T>
+fn swap<T: LocaleObject>(
+  lhs: &AtomicRefCell<Option<T>>,
+  rhs: &AtomicRefCell<Option<T>>
 ) {
-  let (first, second) =
-    if (lhs as *const _) < (rhs as *const _) { (lhs, rhs) } else { (rhs, lhs) };
-  let mut g1 = first.borrow_mut();
-  let mut g2 = second.borrow_mut();
-  core::mem::swap(&mut *g1, &mut *g2);
+  let rhs_v = get_slot(rhs);
+  *lhs.borrow_mut() = rhs_v;
 }
 
 #[unsafe(no_mangle)]
@@ -136,12 +119,7 @@ pub extern "C" fn rs_localeconv() -> *mut lconv {
 #[unsafe(no_mangle)]
 pub extern "C" fn rs_localeconv_l(locale: locale_t<'static>) -> *mut lconv {
   let locale: &locale::Locale = locale::get_real_locale(locale);
-  let lconv = lconv::from_locale(&locale);
-
-  let mut result = locale.localeconv.borrow_mut();
-  *result = lconv;
-
-  &raw mut *result as *mut lconv
+  locale.localeconv.as_ptr()
 }
 
 #[unsafe(no_mangle)]
@@ -181,6 +159,7 @@ extern "C" fn rs_setlocale(
 
       let changed = locale::get_thread_locale();
       if let Ok(result) = changed.setlocale(c as c_int, l) {
+        result.update_strings();
         return result.querylocale(c as c_int);
       }
     }
@@ -217,31 +196,33 @@ fn newlocale_inner(
   let newloc =
     Box::try_new(locale::Locale::new()).map_err(|_| errno::ENOMEM)?;
 
-  locale::set_slot(&newloc.collate, name)?;
-  locale::set_slot(&newloc.ctype, name)?;
-  locale::set_slot(&newloc.messages, name)?;
-  locale::set_slot(&newloc.monetary, name)?;
-  locale::set_slot(&newloc.numeric, name)?;
-  locale::set_slot(&newloc.time, name)?;
+  swap(&newloc.collate, &base.collate);
+  swap(&newloc.ctype, &base.ctype);
+  swap(&newloc.messages, &base.messages);
+  swap(&newloc.monetary, &base.monetary);
+  swap(&newloc.numeric, &base.numeric);
+  swap(&newloc.time, &base.time);
 
-  if (mask & LC_COLLATE_MASK) == 0 {
-    swap(&newloc.collate, &base.collate);
+  if (mask & LC_COLLATE_MASK) != 0 {
+    locale::set_slot(&newloc.collate, name)?;
   }
-  if (mask & LC_CTYPE_MASK) == 0 {
-    swap(&newloc.ctype, &base.ctype);
+  if (mask & LC_CTYPE_MASK) != 0 {
+    locale::set_slot(&newloc.ctype, name)?;
   }
-  if (mask & LC_MESSAGES_MASK) == 0 {
-    swap(&newloc.messages, &base.messages);
+  if (mask & LC_MESSAGES_MASK) != 0 {
+    locale::set_slot(&newloc.messages, name)?;
   }
-  if (mask & LC_MONETARY_MASK) == 0 {
-    swap(&newloc.monetary, &base.monetary);
+  if (mask & LC_MONETARY_MASK) != 0 {
+    locale::set_slot(&newloc.monetary, name)?;
   }
-  if (mask & LC_NUMERIC_MASK) == 0 {
-    swap(&newloc.numeric, &base.numeric);
+  if (mask & LC_NUMERIC_MASK) != 0 {
+    locale::set_slot(&newloc.numeric, name)?;
   }
-  if (mask & LC_TIME_MASK) == 0 {
-    swap(&newloc.time, &base.time);
+  if (mask & LC_TIME_MASK) != 0 {
+    locale::set_slot(&newloc.time, name)?;
   }
+
+  newloc.update_strings();
 
   Ok(Box::into_raw(newloc))
 }
@@ -277,8 +258,8 @@ pub extern "C" fn rs_duplocale(locale: locale_t<'static>) -> locale_t<'static> {
     return ptr::null_mut();
   }
 
-  let new = Box::try_new(locale::Locale::new());
-  let new = match new {
+  let newloc = Box::try_new(locale::Locale::new());
+  let newloc = match newloc {
     | Ok(n) => n,
     | Err(_) => {
       errno::set_errno(errno::ENOMEM);
@@ -288,14 +269,16 @@ pub extern "C" fn rs_duplocale(locale: locale_t<'static>) -> locale_t<'static> {
 
   let base = locale::get_real_locale(locale);
 
-  swap(&new.collate, &base.collate);
-  swap(&new.ctype, &base.ctype);
-  swap(&new.messages, &base.messages);
-  swap(&new.monetary, &base.monetary);
-  swap(&new.numeric, &base.numeric);
-  swap(&new.time, &base.time);
+  swap(&newloc.collate, &base.collate);
+  swap(&newloc.ctype, &base.ctype);
+  swap(&newloc.messages, &base.messages);
+  swap(&newloc.monetary, &base.monetary);
+  swap(&newloc.numeric, &base.numeric);
+  swap(&newloc.time, &base.time);
 
-  Box::into_raw(new)
+  newloc.update_strings();
+
+  Box::into_raw(newloc)
 }
 
 #[unsafe(no_mangle)]
