@@ -13,6 +13,11 @@ pub fn get_error_string<'a>(
   let misc = messages.misc_messages;
   let unknown = misc[0];
   let errors = messages.strerror;
+
+  if buffer.is_empty() {
+    return Err(errno::ERANGE);
+  }
+
   let mut writer = CBufWriter::new(buffer);
 
   if let Some(e) = errors.get(num as usize) {
