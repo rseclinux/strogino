@@ -157,11 +157,28 @@ extern "C" fn rs_setlocale(
         return ptr::null_mut();
       }
 
-      let changed = locale::get_thread_locale();
-      if let Ok(result) = changed.setlocale(c as c_int, l) {
-        result.update_strings();
-        return result.querylocale(c as c_int);
+      let Ok(newloc) = Box::try_new(locale::Locale::new()) else {
+        return ptr::null_mut();
+      };
+
+      let base = locale::get_thread_locale();
+
+      swap(&newloc.collate, &base.collate);
+      swap(&newloc.ctype, &base.ctype);
+      swap(&newloc.messages, &base.messages);
+      swap(&newloc.monetary, &base.monetary);
+      swap(&newloc.numeric, &base.numeric);
+      swap(&newloc.time, &base.time);
+
+      if newloc.setlocale(c as c_int, l).is_err() {
+        return ptr::null_mut();
       }
+
+      newloc.update_strings();
+
+      locale::set_thread_locale_ptr(Box::into_raw(newloc));
+
+      return locale::get_thread_locale().querylocale(c as c_int);
     }
   }
 

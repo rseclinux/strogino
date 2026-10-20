@@ -605,6 +605,34 @@ TEST(newlocale, success_netherlands)
   rs_freelocale(locale);
 }
 
+TEST(newlocale, good_misc)
+{
+  rs_errno = 0;
+
+  ouma_locale_t locale = rs_newlocale(RS_LC_CTYPE_MASK, ".utf8", 0);
+  ASSERT_NE(nullptr, locale);
+  ASSERT_NE(ENOENT, rs_errno);
+  ASSERT_STREQ(rs_getlocalename_l(RS_LC_CTYPE, locale), ".utf8");
+  rs_freelocale(locale);
+
+  rs_errno = 0;
+
+  ouma_locale_t locale2 = rs_newlocale(RS_LC_COLLATE_MASK, "ja_JP", 0);
+  ASSERT_NE(nullptr, locale2);
+  ASSERT_NE(ENOENT, rs_errno);
+  ASSERT_STREQ(rs_getlocalename_l(RS_LC_COLLATE, locale), "ja_JP");
+  rs_freelocale(locale2);
+
+  rs_errno = 0;
+
+  ouma_locale_t locale3 = rs_newlocale(RS_LC_COLLATE_MASK | RS_LC_NUMERIC_MASK, "en-AU", 0);
+  ASSERT_NE(nullptr, locale3);
+  ASSERT_NE(ENOENT, rs_errno);
+  ASSERT_STREQ(rs_getlocalename_l(RS_LC_COLLATE, locale), "en-AU");
+  ASSERT_STREQ(rs_getlocalename_l(RS_LC_NUMERIC, locale), "en-AU");
+  rs_freelocale(locale3);
+}
+
 TEST(uselocale, example)
 {
   rs_uselocale(RS_LC_GLOBAL_LOCALE);
@@ -636,6 +664,9 @@ TEST(getlocalename_l, good)
     "LC_COLLATE=en_US.UTF-8;LC_CTYPE=en_US.UTF-8;LC_MESSAGES=de_DE.UTF-8;LC_"
     "MONETARY=en_US.UTF-8;LC_NUMERIC=en_US.UTF-8;LC_TIME=en_US.UTF-8",
     rs_getlocalename_l(RS_LC_ALL, new_locale));
+
+  ASSERT_STREQ(rs_getlocalename_l(RS_LC_ALL, RS_LC_GLOBAL_LOCALE), "C");
+  ASSERT_STREQ(rs_getlocalename_l(RS_LC_CTYPE, RS_LC_GLOBAL_LOCALE), "C");
 
   rs_freelocale(new_locale);
   rs_freelocale(locale);

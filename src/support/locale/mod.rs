@@ -157,6 +157,12 @@ pub fn set_slot<T: LocaleObject>(
   obj.setlocale(name).map(|_| ()).map_err(|_| errno::ENOENT)
 }
 
+const C_LOCALE_NAME: [u8; 512] = {
+  let mut arr = [0; 512];
+  arr[0] = b'C';
+  arr
+};
+
 #[derive(Debug)]
 pub struct Locale<'a> {
   lc_all: AtomicRefCell<[u8; 512]>,
@@ -174,7 +180,7 @@ impl<'a> Locale<'a> {
   #[inline]
   pub const fn new() -> Self {
     Self {
-      lc_all: AtomicRefCell::new([0; 512]),
+      lc_all: AtomicRefCell::new(C_LOCALE_NAME),
       langinfo: AtomicRefCell::new([0; 512]),
       localeconv: AtomicRefCell::new(lconv::new()),
       collate: AtomicRefCell::new(Some(collate::CollateObject::new())),
@@ -189,7 +195,7 @@ impl<'a> Locale<'a> {
   #[inline]
   pub const fn global() -> Self {
     Self {
-      lc_all: AtomicRefCell::new([0; 512]),
+      lc_all: AtomicRefCell::new(C_LOCALE_NAME),
       langinfo: AtomicRefCell::new([0; 512]),
       localeconv: AtomicRefCell::new(lconv::new()),
       collate: AtomicRefCell::new(None),
