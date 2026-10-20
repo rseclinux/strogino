@@ -658,17 +658,16 @@ TEST(duplocale, example)
   ouma_locale_t n1 = rs_newlocale(RS_LC_ALL_MASK, "en_US", nullptr);
   ASSERT_NE(n1, nullptr);
 
-  const char* c1 = rs_getlocalename_l(RS_LC_ALL, n1);
-
-  ASSERT_STREQ("en_US", c1);
+  std::string saved_c1 = rs_getlocalename_l(RS_LC_ALL, n1);
+  ASSERT_STREQ("en_US", saved_c1.c_str());
 
   ouma_locale_t n2 = rs_duplocale(n1);
   ASSERT_NE(n2, nullptr);
 
   rs_freelocale(n1);
 
-  const char* c2 = rs_getlocalename_l(RS_LC_ALL, n2);
-  ASSERT_STREQ(c2, c1);
+  std::string c2 = rs_getlocalename_l(RS_LC_ALL, n2);
+  EXPECT_EQ(c2, saved_c1);
 
   ouma_locale_t n3 = rs_newlocale(RS_LC_MESSAGES_MASK, "de_DE.UTF-8", n2);
   ASSERT_NE(n3, nullptr);
