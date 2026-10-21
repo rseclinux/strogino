@@ -411,19 +411,13 @@ pub static DEFAULT_LOCALE: SyncUnsafeCell<Locale<'static>> =
 
 #[inline]
 pub fn get_global_locale() -> &'static Locale<'static> {
-  let glp = GLOBAL_LOCALE.get();
-  if glp.is_null() {
-    unsafe {
-      ptr::write(glp, Locale::global());
-    };
-  }
-  unsafe { &*glp }
+  unsafe { &*GLOBAL_LOCALE.get() }
 }
 
 #[inline]
 pub fn set_global_locale(loc: Locale<'static>) {
   unsafe {
-    ptr::write(GLOBAL_LOCALE.get(), loc);
+    *GLOBAL_LOCALE.get() = loc;
   };
 }
 
@@ -432,7 +426,7 @@ pub fn get_real_locale(locale: locale_t<'static>) -> &'static Locale<'static> {
   unsafe {
     match locale as intptr_t {
       | 0 => &*DEFAULT_LOCALE.get(),
-      | -1 => &mut *GLOBAL_LOCALE.get(),
+      | -1 => &*GLOBAL_LOCALE.get(),
       | _ => &*locale
     }
   }
