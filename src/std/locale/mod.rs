@@ -141,7 +141,7 @@ extern "C" fn rs_setlocale(
     return ptr::null_mut();
   }
   if locale.is_null() {
-    return locale::get_thread_locale().querylocale(category);
+    return locale::get_global_locale().querylocale(category);
   }
 
   let locale = unsafe { ffi::CStr::from_ptr(locale) };
