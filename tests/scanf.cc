@@ -509,8 +509,7 @@ TEST(sscanf, floats)
   ASSERT_TRUE(d == 0.0);
   ASSERT_TRUE(strcmp(buf, "xg") == 0);
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "ru_RU.UTF-8"),
-               "ru_RU.UTF-8"); /* decimalpoint==, */
+  SET_GLOBAL_LOCALE("ru_RU.UTF-8"); /* decimalpoint==, */
 
   ASSERT_EQ(2, rs_sscanf("1.23", "%le%s", &d, buf));
   ASSERT_TRUE(d == 1.0);
@@ -1559,8 +1558,7 @@ static const struct
 static void
 do_swscanf_test(const char* loc)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, loc), loc);
-  ASSERT_NE(rs_uselocale(RS_LC_GLOBAL_LOCALE), nullptr);
+  SET_GLOBAL_LOCALE(loc);
 
   for (size_t n = 0; n < sizeof(swscanf_tests) / sizeof(swscanf_tests[0]);
        ++n) {

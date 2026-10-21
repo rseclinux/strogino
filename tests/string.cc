@@ -386,7 +386,7 @@ test_strxfrm(const coll_data* coll)
 
 TEST(strcoll, posix)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_COLLATE, "C"));
+  REVERT_TO_C_LOCALE();
 
   const coll_data coll[] = {
     { "", "", 0 },         { "test", "test", 0 }, { "tester", "tester", 0 },
@@ -399,7 +399,7 @@ TEST(strcoll, posix)
 
 TEST(strcoll, uca)
 {
-  ASSERT_STREQ("en_US", rs_setlocale(RS_LC_COLLATE, "en_US"));
+  SET_GLOBAL_LOCALE("en_US");
 
   const coll_data coll[] = {
     { "", "", 0 },           { "test", "test", 0 },    { "tester", "test", 1 },
@@ -623,7 +623,8 @@ TEST(strlcpy, longest)
 
 TEST(strerror, example)
 {
-  rs_setlocale(RS_LC_MESSAGES, "POSIX");
+  REVERT_TO_C_LOCALE();
+
   ASSERT_STREQ(rs_strerror(0), "Success");
 
   const char* message_array[] = {
@@ -789,7 +790,7 @@ TEST(strerror, korean)
 
 TEST(strerror_r, posix)
 {
-  rs_setlocale(RS_LC_MESSAGES, "POSIX");
+  REVERT_TO_C_LOCALE();
 
   char buf[256];
   rs_memset(buf, '\0', sizeof(buf));
@@ -812,7 +813,7 @@ TEST(strerror_r, posix)
 
 TEST(strerror_r, gnu)
 {
-  rs_setlocale(RS_LC_MESSAGES, "POSIX");
+  REVERT_TO_C_LOCALE();
 
   const size_t BUFF_SIZE = 128;
   char buffer[BUFF_SIZE];

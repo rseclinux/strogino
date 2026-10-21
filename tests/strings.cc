@@ -252,7 +252,7 @@ TEST(ffsll, examples)
 
 TEST(strcasecmp, example)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   ASSERT_EQ(rs_strcasecmp(nullptr, nullptr), 0);
   ASSERT_EQ(rs_strcasecmp("", ""), 0);
@@ -292,7 +292,7 @@ TEST(strcasecmp, unicode)
 
 TEST(strncasecmp, example)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   ASSERT_EQ(rs_strncasecmp(nullptr, nullptr, 0), 0);
   ASSERT_EQ(rs_strncasecmp("", "", 50), 0);

@@ -43,7 +43,7 @@ extern "C"
 
 TEST(atof, examples)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
 
   char buf[128];
 
@@ -236,7 +236,8 @@ FloatTestData<long double, char> tests_long_double[] = {
 
 TEST(strtof, dec)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < std::size(tests_float); i++) {
@@ -247,7 +248,8 @@ TEST(strtof, dec)
 
 TEST(strtof, dec1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "0.0625";
@@ -259,7 +261,8 @@ TEST(strtof, dec1)
 
 TEST(strtof, dec2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "12800e-2";
@@ -271,7 +274,8 @@ TEST(strtof, dec2)
 
 TEST(strtof, dec3)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "7,5";
@@ -279,7 +283,8 @@ TEST(strtof, dec3)
   ASSERT_EQ(7.0f, rs_strtof(str, &endptr));
   ASSERT_EQ(str + 1, endptr);
 
-  rs_setlocale(RS_LC_ALL, "nl_NL.UTF-8");
+  SET_GLOBAL_LOCALE("nl_NL.UTF-8");
+
   rs_errno = 0;
 
   ASSERT_EQ(7.5f, rs_strtof(str, &endptr));
@@ -292,7 +297,8 @@ TEST(strtof, dec3)
 
 TEST(strtof, hex1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "  0xcaf.eff";
@@ -304,7 +310,8 @@ TEST(strtof, hex1)
 
 TEST(strtof, hex2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "0x0p99999999999999999999";
@@ -315,7 +322,8 @@ TEST(strtof, hex2)
 
 TEST(strtof, hex3)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "\t0x1p+30000";
@@ -326,7 +334,8 @@ TEST(strtof, hex3)
 
 TEST(strtof, hex4)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "\n0X1P-30000 ";
@@ -337,7 +346,8 @@ TEST(strtof, hex4)
 
 TEST(strtof, hex5)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "-0x123xyz";
@@ -348,7 +358,8 @@ TEST(strtof, hex5)
 
 TEST(strtof, hex6)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "0x";
@@ -359,7 +370,8 @@ TEST(strtof, hex6)
 
 TEST(strtof, hex7)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "0x.8";
@@ -370,7 +382,8 @@ TEST(strtof, hex7)
 
 TEST(strtof, hex8)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* below = "-0x0.ffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -416,7 +429,8 @@ TEST(strtof, hex8)
 
 TEST(strtof, hex9)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* normal = "0x1p-126";
@@ -437,7 +451,8 @@ TEST(strtof, hex9)
 
 TEST(strtof, nan1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "NaN(Hello";
@@ -448,7 +463,8 @@ TEST(strtof, nan1)
 
 TEST(strtof, nan2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "NaN(Hello world) :-)";
@@ -459,7 +475,8 @@ TEST(strtof, nan2)
 
 TEST(strtof, inf1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "INFINITE";
@@ -470,7 +487,8 @@ TEST(strtof, inf1)
 
 TEST(strtof, inf2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "-INFINITY";
@@ -481,7 +499,8 @@ TEST(strtof, inf2)
 
 TEST(strtof, huge_val1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str =
@@ -496,7 +515,8 @@ TEST(strtof, huge_val1)
 
 TEST(strtof, huge_val2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "-1e3000";
@@ -508,7 +528,8 @@ TEST(strtof, huge_val2)
 
 TEST(strtof, zero1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str =
@@ -525,7 +546,8 @@ TEST(strtof, zero1)
 
 TEST(strtof, zero2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "-1e-3000";
@@ -539,7 +561,8 @@ TEST(strtof, zero2)
 
 TEST(strtof, zero3)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "0.0";
@@ -553,7 +576,8 @@ TEST(strtof, zero3)
 
 TEST(strtof, zero4)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* str = "-0.0";
@@ -567,7 +591,8 @@ TEST(strtof, zero4)
 
 TEST(strtod, dec)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < std::size(tests_double); i++) {
@@ -578,7 +603,8 @@ TEST(strtod, dec)
 
 TEST(strtod, hex1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* below = "-0x0.ffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -624,7 +650,8 @@ TEST(strtod, hex1)
 
 TEST(strtod, hex2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* normal = "0x1p-1022";
@@ -657,7 +684,8 @@ TEST(strtod, hex2)
 
 TEST(strtold, dec)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < std::size(tests_long_double); i++) {
@@ -668,7 +696,8 @@ TEST(strtold, dec)
 
 TEST(strtold, hex1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const char* below = "-0x0.ffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -714,7 +743,8 @@ TEST(strtold, hex1)
 
 TEST(strtold, hex2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
 #if LDBL_TYPE == LDBL_IS_F64
@@ -790,7 +820,8 @@ TEST(strtol, base)
     { " 0XX", 0, 16, "XX" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -830,7 +861,8 @@ TEST(strtoul, base)
     { " 0XX", 0, 16, "XX" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -870,7 +902,8 @@ TEST(strtoll, base)
     { " 0XX", 0, 16, "XX" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -910,7 +943,8 @@ TEST(strtoull, base)
     { " 0XX", 0, 16, "XX" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -927,7 +961,8 @@ TEST(strtol, invbase)
   const char str[] = "1";
   char* end = boo;
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   long result = rs_strtol(str, &end, -2);
@@ -942,7 +977,8 @@ TEST(strtoul, invbase)
   const char str[] = "1";
   char* end = boo;
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   unsigned long result = rs_strtoul(str, &end, -2);
@@ -957,7 +993,8 @@ TEST(strtoll, invbase)
   const char str[] = "1";
   char* end = boo;
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   long long result = rs_strtoll(str, &end, -2);
@@ -972,7 +1009,8 @@ TEST(strtoull, invbase)
   const char str[] = "1";
   char* end = boo;
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   unsigned long long result = rs_strtoull(str, &end, -2);
@@ -995,7 +1033,8 @@ TEST(strtol, case_insensitive)
     { "0xABCDX", 0xabcd, 16, "X" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1020,7 +1059,8 @@ TEST(strtoul, case_insensitive)
     { "0xABCDX", 0xabcd, 16, "X" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1045,7 +1085,8 @@ TEST(strtoll, case_insensitive)
     { "0xABCDX", 0xabcd, 16, "X" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1070,7 +1111,8 @@ TEST(strtoull, case_insensitive)
     { "0xABCDX", 0xabcd, 16, "X" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1097,7 +1139,8 @@ TEST(strtol, range)
   };
 #endif
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1123,7 +1166,8 @@ TEST(strtoul, range)
     { "10000000000000000", ULONG_MAX, 16 },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1149,7 +1193,8 @@ TEST(strtoull, range)
     { "10000000000000000", ULLONG_MAX, 16 },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1174,7 +1219,8 @@ TEST(strtol, signed)
     { "+33.", 33, 0, "." },      { "30x0", 30, 0, "x0" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1210,7 +1256,8 @@ TEST(strtoul, signed)
     { "30x0", 30, 0, "x0" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1236,7 +1283,8 @@ TEST(strtoll, signed)
     { "+33.", 33, 0, "." },      { "30x0", 30, 0, "x0" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1272,7 +1320,8 @@ TEST(strtoull, signed)
     { "30x0", 30, 0, "x0" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1288,7 +1337,8 @@ TEST(strtoull, signed)
 
 TEST(mblen, bad)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   ASSERT_EQ(-1, rs_mblen("", 0));
@@ -1299,7 +1349,8 @@ TEST(mblen, bad)
 
 TEST(mblen, ascii)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   ASSERT_EQ(0, rs_mblen(NULL, 12345));
@@ -1321,7 +1372,8 @@ TEST(mblen, ascii)
 
 TEST(mblen, unicode)
 {
-  rs_setlocale(RS_LC_ALL, "C.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
+
   rs_errno = 0;
 
   char euro[] = "€";
@@ -1336,7 +1388,8 @@ TEST(mblen, unicode)
 
 TEST(mbtowc, bad)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   ASSERT_EQ(-1, rs_mbtowc(NULL, "", 0));
@@ -1347,7 +1400,8 @@ TEST(mbtowc, bad)
 
 TEST(mbtowc, ascii)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   ASSERT_EQ(0, rs_mbtowc(NULL, NULL, 12345));
@@ -1372,7 +1426,8 @@ TEST(mbtowc, ascii)
 
 TEST(mbtowc, unicode)
 {
-  rs_setlocale(RS_LC_ALL, "C.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
+
   rs_errno = 0;
 
   char euro[] = "€";
@@ -1390,7 +1445,8 @@ TEST(mbtowc, unicode)
 
 TEST(mbstowcs, bad)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   ASSERT_EQ(-1, rs_mbstowcs(NULL, "München", 42));
@@ -1399,7 +1455,8 @@ TEST(mbstowcs, bad)
 
 TEST(mbstowcs, zero)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   ASSERT_EQ(0, rs_mbstowcs((wchar_t*)0x42, "Hello", 0));
@@ -1407,7 +1464,8 @@ TEST(mbstowcs, zero)
 
 TEST(mbstowcs, length)
 {
-  rs_setlocale(RS_LC_ALL, "nl_NL.UTF-8");
+  SET_GLOBAL_LOCALE("nl_NL.UTF-8");
+
   rs_errno = 0;
 
   ASSERT_EQ(10, rs_mbstowcs(NULL, "Düsseldorf", 0));
@@ -1418,7 +1476,8 @@ TEST(mbstowcs, length)
 
 TEST(mbstowcs, convert)
 {
-  rs_setlocale(RS_LC_ALL, "nl_NL.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
+
   rs_errno = 0;
 
   {
@@ -1454,7 +1513,8 @@ TEST(mbstowcs, convert)
 }
 TEST(wctomb, ascii)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   ASSERT_EQ(0, rs_wctomb(NULL, L'€'));
@@ -1475,7 +1535,8 @@ TEST(wctomb, ascii)
 
 TEST(wctomb, unicode)
 {
-  rs_setlocale(RS_LC_ALL, "C.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
+
   rs_errno = 0;
 
   char buf[MB_LEN_MAX];
@@ -1485,7 +1546,8 @@ TEST(wctomb, unicode)
 
 TEST(wcstombs, bad)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   ASSERT_EQ(-1, rs_wcstombs(NULL, L"München", 42));
@@ -1494,7 +1556,8 @@ TEST(wcstombs, bad)
 
 TEST(wcstombs, zero)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   ASSERT_EQ(0, rs_wcstombs((char*)0x42, L"Hello", 0));
@@ -1502,7 +1565,8 @@ TEST(wcstombs, zero)
 
 TEST(wcstombs, length)
 {
-  rs_setlocale(RS_LC_ALL, "C.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
+
   rs_errno = 0;
 
   ASSERT_EQ(11, rs_wcstombs(NULL, L"Düsseldorf", 0));
@@ -1513,7 +1577,8 @@ TEST(wcstombs, length)
 
 TEST(wcstombs, convert)
 {
-  rs_setlocale(RS_LC_ALL, "C.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
+
   rs_errno = 0;
 
   {
@@ -1702,7 +1767,7 @@ check_l(const char* fmt, long double val)
 
 TEST(strfromf, fixed)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_f("%f", 0.0f);
   check_f("%f", 1.0f);
@@ -1719,7 +1784,7 @@ TEST(strfromf, scientific)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_f("%e", 0.0f);
   check_f("%e", 1.0f);
@@ -1737,7 +1802,7 @@ TEST(strfromf, automatic)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_f("%g", 0.0f);
   check_f("%g", 1.0f);
@@ -1756,7 +1821,7 @@ TEST(strfromf, hexadecimal)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_f("%a", 0.0f);
   check_f("%a", 1.0f);
@@ -1771,7 +1836,7 @@ TEST(strfromf, hexadecimal)
 
 TEST(strfromf, inf_nan)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_f("%f", INFINITY);
   check_f("%f", -INFINITY);
@@ -1786,7 +1851,7 @@ TEST(strfromf, inf_nan)
 
 TEST(strfromf, truncation)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   char buf[FBUF];
   int ret;
@@ -1805,7 +1870,7 @@ TEST(strfromd, fixed)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_d("%f", 0.0);
   check_d("%f", 1.0);
@@ -1833,7 +1898,7 @@ TEST(strfromd, scientific)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_d("%e", 0.0);
   check_d("%e", 1.0);
@@ -1856,7 +1921,7 @@ TEST(strfromd, automatic)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_d("%g", 0.0);
   check_d("%g", 1.0);
@@ -1882,7 +1947,7 @@ TEST(strfromd, hexadecimal)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_d("%a", 0.0);
   check_d("%a", 1.0);
@@ -1907,7 +1972,7 @@ TEST(strfromd, inf_nan)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_d("%f", INFINITY);
   check_d("%f", -INFINITY);
@@ -1944,7 +2009,7 @@ TEST(strfromd, inf_nan)
 
 TEST(strfromd, truncation)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   char buf[FBUF];
   int ret;
@@ -1976,7 +2041,7 @@ TEST(strfroml, scientific)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_l("%e", 0.0L);
   check_l("%e", 1.0L);
@@ -1996,7 +2061,7 @@ TEST(strfroml, automatic)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_l("%g", 0.0L);
   check_l("%g", 1.0L);
@@ -2016,7 +2081,7 @@ TEST(strfroml, hexadecimal)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_l("%a", 0.0L);
   check_l("%a", 1.0L);
@@ -2038,7 +2103,7 @@ TEST(strfroml, hexadecimal)
 
 TEST(strfroml, inf_nan)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_l("%f", INFINITY);
   check_l("%f", -INFINITY);
@@ -2057,7 +2122,7 @@ TEST(strfroml, inf_nan)
 
 TEST(strfroml, truncation)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   char buf[FBUF];
   int ret;
@@ -2074,7 +2139,7 @@ TEST(strfroml, truncation)
 
 TEST(strfrom_misc, precision_forms)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_d("%.f", 2.5);
   check_d("%.E", 12.345e19);
@@ -2089,7 +2154,7 @@ TEST(strfrom_misc, truncation_contract)
   char buf[FBUF];
   int ret;
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   buf[0] = 'X';
   ret = rs_strfromd(buf, 0, "%f", 1.0);
@@ -2113,7 +2178,7 @@ TEST(strfrom_misc, errno_preserved_on_success)
 {
   char buf[FBUF];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
   rs_strfromd(buf, sizeof(buf), "%f", 1.0);
@@ -2150,7 +2215,7 @@ check_rejects(const char* fmt, int variant)
 
 TEST(strfrom_ext, rejects_malformed_formats)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   check_rejects("", 0);
   check_rejects("%q", 0);
