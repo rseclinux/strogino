@@ -378,7 +378,7 @@ test_wcsxfrm(const coll_data* coll)
 
 TEST(wcscoll, posix)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_COLLATE, "C"));
+  REVERT_TO_C_LOCALE();
 
   const coll_data coll[] = {
     { L"", L"", 0 },
@@ -394,7 +394,7 @@ TEST(wcscoll, posix)
 
 TEST(wcscoll, uca)
 {
-  ASSERT_STREQ("en_US", rs_setlocale(RS_LC_COLLATE, "en_US"));
+  SET_GLOBAL_LOCALE("en_US");
 
   const coll_data coll[] = {
     { L"", L"", 0 },
@@ -484,7 +484,7 @@ TEST(wcslcpy, longest)
 
 TEST(btowc, simple)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_CTYPE, "C"));
+  REVERT_TO_C_LOCALE();
 
   ASSERT_EQ(WEOF, rs_btowc(EOF));
   for (int i = 0; i < 128; ++i) {
@@ -499,7 +499,7 @@ TEST(btowc, simple)
 
 TEST(mbrlen, euro)
 {
-  ASSERT_STREQ("C.UTF-8", rs_setlocale(RS_LC_CTYPE, "C.UTF-8"));
+  REVERT_TO_UNICODE_LOCALE();
 
   char euro[] = "€";
   ouma_mbstate_t mbs{};
@@ -511,7 +511,7 @@ TEST(mbrlen, euro)
 
 TEST(mbrtowc, ascii)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_CTYPE, "C"));
+  REVERT_TO_C_LOCALE();
 
   ouma_mbstate_t mbs{};
   wchar_t wc;
@@ -529,7 +529,7 @@ TEST(mbrtowc, ascii)
 
 TEST(mbrtowc, unicode)
 {
-  ASSERT_STREQ("C.UTF-8", rs_setlocale(RS_LC_CTYPE, "C.UTF-8"));
+  REVERT_TO_UNICODE_LOCALE();
 
   ouma_mbstate_t mbs{};
   wchar_t wc;
@@ -559,7 +559,7 @@ TEST(mbsinit, init)
 
 TEST(mbsrtowcs, posix)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_CTYPE, "C"));
+  REVERT_TO_C_LOCALE();
 
   char srcbuf[128];
   wchar_t dstbuf[128];
@@ -633,7 +633,7 @@ TEST(mbsrtowcs, posix)
 
 TEST(mbsnrtowcs, posix)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_CTYPE, "C"));
+  REVERT_TO_C_LOCALE();
 
   char srcbuf[128];
   wchar_t dstbuf[128];
@@ -735,7 +735,7 @@ TEST(mbsnrtowcs, posix)
 
 TEST(wcrtomb, ascii)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_CTYPE, "C"));
+  REVERT_TO_C_LOCALE();
 
   char c;
   ASSERT_EQ(1, rs_wcrtomb(&c, U'A', NULL));
@@ -750,7 +750,7 @@ TEST(wcrtomb, ascii)
 
 TEST(wcrtomb, unicode)
 {
-  ASSERT_STREQ("C.UTF-8", rs_setlocale(RS_LC_CTYPE, "C.UTF-8"));
+  REVERT_TO_UNICODE_LOCALE();
 
   char buf[MB_LEN_MAX];
   ASSERT_EQ(1, rs_wcrtomb(buf, U'A', NULL));
@@ -765,7 +765,7 @@ TEST(wcrtomb, unicode)
 
 TEST(wcsrtombs, posix)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_CTYPE, "C"));
+  REVERT_TO_C_LOCALE();
 
   wchar_t srcbuf[128];
   char dstbuf[128];
@@ -833,7 +833,7 @@ TEST(wcsrtombs, posix)
 
 TEST(wcsnrtombs, posix)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_CTYPE, "C"));
+  REVERT_TO_C_LOCALE();
 
   wchar_t srcbuf[128];
   char dstbuf[128];
@@ -932,7 +932,7 @@ TEST(wcsnrtombs, posix)
 
 TEST(wctob, simple)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_CTYPE, "C"));
+  REVERT_TO_C_LOCALE();
 
   ASSERT_EQ(EOF, rs_wctob(WEOF));
   for (wint_t i = 0; i < 128; ++i) {
@@ -973,7 +973,7 @@ h_btowc(struct btowc_wctob_test* t)
   char* str;
   const wchar_t* wcp;
 
-  ASSERT_STREQ("en_US.UTF-8", rs_setlocale(RS_LC_CTYPE, t->locale));
+  SET_GLOBAL_LOCALE(t->locale);
 
   ASSERT_EQ(btowc(EOF), WEOF);
   ASSERT_EQ(wctob(WEOF), EOF);
@@ -998,7 +998,7 @@ h_iso10646(struct btowc_wctob_test* t)
   char* str;
   const wchar_t* wcp;
 
-  ASSERT_STREQ("en_US.UTF-8", rs_setlocale(RS_LC_CTYPE, t->locale));
+  SET_GLOBAL_LOCALE(t->locale);
 
   for (cp = t->legal, wcp = t->wlegal; *cp != '\0'; ++cp, ++wcp) {
     c = (int)(unsigned char)*cp;
@@ -1025,7 +1025,7 @@ TEST(btowc_wctob, unicode)
 
 TEST(wcscasecmp, example)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   ASSERT_EQ(rs_wcscasecmp(nullptr, nullptr), 0);
   ASSERT_EQ(rs_wcscasecmp(L"", L""), 0);
@@ -1065,7 +1065,7 @@ TEST(wcscasecmp, unicode)
 
 TEST(wcsncasecmp, example)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   ASSERT_EQ(rs_wcsncasecmp(nullptr, nullptr, 0), 0);
   ASSERT_EQ(rs_wcsncasecmp(L"", L"", 50), 0);
@@ -1095,7 +1095,7 @@ TEST(wcsncasecmp, unicode)
 
 TEST(wcwidth, korean)
 {
-  ASSERT_STREQ("ko_KR.UTF-8", rs_setlocale(RS_LC_CTYPE, "ko_KR.UTF-8"));
+  REVERT_TO_UNICODE_LOCALE();
 
   EXPECT_EQ(2, rs_wcwidth(L'ㅜ'));
   EXPECT_EQ(2, rs_wcwidth(L'ㅋ'));
@@ -1103,21 +1103,21 @@ TEST(wcwidth, korean)
 
 TEST(wcwidth, korean_jeongeul_syllables)
 {
-  ASSERT_STREQ("ko_KR.UTF-8", rs_setlocale(RS_LC_CTYPE, "ko_KR.UTF-8"));
+  REVERT_TO_UNICODE_LOCALE();
 
   EXPECT_EQ(2, rs_wcwidth(0xac00));
 }
 
 TEST(wcwidth, korean_jamo_jieut)
 {
-  ASSERT_STREQ("ko_KR.UTF-8", rs_setlocale(RS_LC_CTYPE, "ko_KR.UTF-8"));
+  REVERT_TO_UNICODE_LOCALE();
 
   EXPECT_EQ(1, rs_wcwidth(0x11bd));
 }
 
 TEST(wcwidth, emoji)
 {
-  ASSERT_STREQ("ko_KR.UTF-8", rs_setlocale(RS_LC_CTYPE, "ko_KR.UTF-8"));
+  REVERT_TO_UNICODE_LOCALE();
 
   EXPECT_EQ(2, rs_wcwidth(0x0001f60e));
   EXPECT_EQ(4, rs_wcswidth(L"👩🏿", 4));
@@ -1125,7 +1125,7 @@ TEST(wcwidth, emoji)
 
 TEST(wcswidth, simple)
 {
-  ASSERT_STREQ("en_US.UTF-8", rs_setlocale(RS_LC_CTYPE, "en_US.UTF-8"));
+  REVERT_TO_UNICODE_LOCALE();
 
   const wchar_t str[] = L"Iñtërnâtiônàlizætiøn";
   ASSERT_EQ(19, rs_wcswidth(str, std::size(str) - 2));
@@ -1136,7 +1136,7 @@ TEST(wcswidth, simple)
 
 TEST(wcswidth, japanese)
 {
-  ASSERT_STREQ("en_US.UTF-8", rs_setlocale(RS_LC_CTYPE, "en_US.UTF-8"));
+  REVERT_TO_UNICODE_LOCALE();
 
   const wchar_t str[] = L"コンニチハ";
   ASSERT_EQ(8, rs_wcswidth(str, std::size(str) - 2));
@@ -1147,7 +1147,7 @@ TEST(wcswidth, japanese)
 
 TEST(wcswidth, thai)
 {
-  ASSERT_STREQ("en_US.UTF-8", rs_setlocale(RS_LC_CTYPE, "en_US.UTF-8"));
+  REVERT_TO_UNICODE_LOCALE();
 
   const wchar_t str[] = L"๏ แผ่นดินฮั่นเสื่อมโทรมแสนสังเวช";
   ASSERT_EQ(24, rs_wcswidth(str, std::size(str) - 2));
@@ -1158,7 +1158,7 @@ TEST(wcswidth, thai)
 
 TEST(wcswidth, zalgo)
 {
-  ASSERT_STREQ("en_US.UTF-8", rs_setlocale(RS_LC_CTYPE, "en_US.UTF-8"));
+  REVERT_TO_UNICODE_LOCALE();
 
   const wchar_t str[] = L"T̫̺̳o̬̜ ì̬͎̲̟nv̖̗̻̣̹̕o͖̗̠̜̤k͍͚̹͖̼e̦̗̪͍̪͍ ̬ͅt̕h̠͙̮͕͓e̱̜̗͙̭ ̥͔̫͙̪͍̣͝ḥi̼̦͈̼v҉̩̟͚̞͎e͈̟̻͙̦̤-m̷̘̝̱í͚̞̦̳n̝̲̯̙̮͞d̴̺̦͕̫ ̗̭̘͎͖r̞͎̜̜͖͎̫͢ep͇r̝̯̝͖͉͎̺e̴s̥e̵̖̳͉͍̩̗n̢͓̪͕̜̰̠̦t̺̞̰i͟n҉̮̦̖̟g̮͍̱̻͍̜̳ ̳c̖̮̙̣̰̠̩h̷̗͍̖͙̭͇͈a̧͎̯̹̲̺̫ó̭̞̜̣̯͕s̶̤̮̩̘.̨̻̪̖͔";
   ASSERT_EQ(43, rs_wcswidth(str, std::size(str)));
@@ -1358,7 +1358,8 @@ FloatTestData<long double, wchar_t> wide_tests_long_double[] = {
 
 TEST(wcstof, dec)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < std::size(wide_tests_float); i++) {
@@ -1369,7 +1370,7 @@ TEST(wcstof, dec)
 
 TEST(wcstof, dec1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
   rs_errno = 0;
 
   const wchar_t* str = L"0.0625";
@@ -1381,7 +1382,8 @@ TEST(wcstof, dec1)
 
 TEST(wcstof, dec2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"12800e-2";
@@ -1393,7 +1395,8 @@ TEST(wcstof, dec2)
 
 TEST(wcstof, dec3)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"7,5";
@@ -1401,7 +1404,7 @@ TEST(wcstof, dec3)
   ASSERT_EQ(7.0f, rs_wcstof(str, &endptr));
   ASSERT_EQ(str + 1, endptr);
 
-  rs_setlocale(RS_LC_ALL, "nl_NL.UTF-8");
+  SET_GLOBAL_LOCALE("nl_NL.UTF-8");
   rs_errno = 0;
 
   ASSERT_EQ(7.5f, rs_wcstof(str, &endptr));
@@ -1414,7 +1417,8 @@ TEST(wcstof, dec3)
 
 TEST(wcstof, hex1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"  0xcaf.eff";
@@ -1426,7 +1430,8 @@ TEST(wcstof, hex1)
 
 TEST(wcstof, hex2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"0x0p99999999999999999999";
@@ -1437,7 +1442,8 @@ TEST(wcstof, hex2)
 
 TEST(wcstof, hex3)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"\t0x1p+30000";
@@ -1448,7 +1454,8 @@ TEST(wcstof, hex3)
 
 TEST(wcstof, hex4)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"\n0X1P-30000 ";
@@ -1459,7 +1466,8 @@ TEST(wcstof, hex4)
 
 TEST(wcstof, hex5)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"-0x123xyz";
@@ -1470,7 +1478,8 @@ TEST(wcstof, hex5)
 
 TEST(wcstof, hex6)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"0x";
@@ -1481,7 +1490,8 @@ TEST(wcstof, hex6)
 
 TEST(wcstof, hex7)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"0x.8";
@@ -1492,7 +1502,8 @@ TEST(wcstof, hex7)
 
 TEST(wcstof, hex8)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* below =
@@ -1540,7 +1551,8 @@ TEST(wcstof, hex8)
 
 TEST(wcstof, hex9)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* normal = L"0x1p-126";
@@ -1562,7 +1574,8 @@ TEST(wcstof, hex9)
 
 TEST(wcstof, nan1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"NaN(Hello";
@@ -1573,7 +1586,8 @@ TEST(wcstof, nan1)
 
 TEST(wcstof, nan2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"NaN(Hello world) :-)";
@@ -1584,7 +1598,8 @@ TEST(wcstof, nan2)
 
 TEST(wcstof, inf1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"INFINITE";
@@ -1595,7 +1610,8 @@ TEST(wcstof, inf1)
 
 TEST(wcstof, inf2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"-INFINITY";
@@ -1606,7 +1622,8 @@ TEST(wcstof, inf2)
 
 TEST(wcstof, huge_val1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str =
@@ -1622,7 +1639,8 @@ TEST(wcstof, huge_val1)
 
 TEST(wcstof, huge_val2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"-1e3000";
@@ -1634,7 +1652,8 @@ TEST(wcstof, huge_val2)
 
 TEST(wcstof, zero1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str =
@@ -1652,7 +1671,8 @@ TEST(wcstof, zero1)
 
 TEST(wcstof, zero2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"-1e-3000";
@@ -1666,7 +1686,8 @@ TEST(wcstof, zero2)
 
 TEST(wcstof, zero3)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"0.0";
@@ -1680,7 +1701,8 @@ TEST(wcstof, zero3)
 
 TEST(wcstof, zero4)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* str = L"-0.0";
@@ -1694,7 +1716,8 @@ TEST(wcstof, zero4)
 
 TEST(wcstod, dec)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < std::size(wide_tests_double); i++) {
@@ -1705,7 +1728,8 @@ TEST(wcstod, dec)
 
 TEST(wcstod, hex1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* below =
@@ -1753,7 +1777,8 @@ TEST(wcstod, hex1)
 
 TEST(wcstod, hex2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* normal = L"0x1p-1022";
@@ -1787,7 +1812,8 @@ TEST(wcstod, hex2)
 
 TEST(wcstold, dec)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < std::size(wide_tests_long_double); i++) {
@@ -1798,7 +1824,8 @@ TEST(wcstold, dec)
 
 TEST(wcstold, hex1)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   const wchar_t* below =
@@ -1846,7 +1873,8 @@ TEST(wcstold, hex1)
 
 TEST(wcstold, hex2)
 {
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
 #if LDBL_TYPE == LDBL_IS_F64
@@ -1922,7 +1950,8 @@ TEST(wcstol, base)
     { L" 0XX", 0, 16, L"XX" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -1962,7 +1991,8 @@ TEST(wcstoul, base)
     { L" 0XX", 0, 16, L"XX" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2002,7 +2032,8 @@ TEST(wcstoll, base)
     { L" 0XX", 0, 16, L"XX" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2042,7 +2073,8 @@ TEST(wcstoull, base)
     { L" 0XX", 0, 16, L"XX" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2059,7 +2091,8 @@ TEST(wcstol, invbase)
   const wchar_t str[] = L"1";
   wchar_t* end = boo;
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   long result = rs_wcstol(str, &end, -2);
@@ -2074,7 +2107,8 @@ TEST(wcstoul, invbase)
   const wchar_t str[] = L"1";
   wchar_t* end = boo;
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   unsigned long result = rs_wcstoul(str, &end, -2);
@@ -2089,7 +2123,8 @@ TEST(wcstoll, invbase)
   const wchar_t str[] = L"1";
   wchar_t* end = boo;
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   long long result = rs_wcstoll(str, &end, -2);
@@ -2104,7 +2139,8 @@ TEST(wcstoull, invbase)
   const wchar_t str[] = L"1";
   wchar_t* end = boo;
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   unsigned long long result = rs_wcstoull(str, &end, -2);
@@ -2127,7 +2163,8 @@ TEST(wcstol, case_insensitive)
     { L"0xABCDX", 0xabcd, 16, L"X" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2152,7 +2189,8 @@ TEST(wcstoul, case_insensitive)
     { L"0xABCDX", 0xabcd, 16, L"X" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2177,7 +2215,8 @@ TEST(wcstoll, case_insensitive)
     { L"0xABCDX", 0xabcd, 16, L"X" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2202,7 +2241,8 @@ TEST(wcstoull, case_insensitive)
     { L"0xABCDX", 0xabcd, 16, L"X" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2229,7 +2269,8 @@ TEST(wcstol, range)
   };
 #endif
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2249,7 +2290,8 @@ TEST(wcstoll, range)
     { L"8000000000000000", 9223372036854775807LL, 16, nullptr },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2275,7 +2317,8 @@ TEST(wcstoul, range)
     { L"10000000000000000", ULONG_MAX, 16 },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2301,7 +2344,8 @@ TEST(wcstoull, range)
     { L"10000000000000000", ULLONG_MAX, 16 },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2326,7 +2370,8 @@ TEST(wcstol, signed)
     { L"+33.", 33, 0, L"." },     { L"30x0", 30, 0, L"x0" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2362,7 +2407,8 @@ TEST(wcstoul, signed)
     { L"30x0", 30, 0, L"x0" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2388,7 +2434,8 @@ TEST(wcstoll, signed)
     { L"+33.", 33, 0, L"." },     { L"30x0", 30, 0, L"x0" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
@@ -2424,7 +2471,8 @@ TEST(wcstoull, signed)
     { L"30x0", 30, 0, L"x0" },
   };
 
-  rs_setlocale(RS_LC_ALL, "C");
+  REVERT_TO_C_LOCALE();
+
   rs_errno = 0;
 
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {

@@ -81,7 +81,7 @@ extern "C"
 
 TEST(iswascii, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -106,7 +106,7 @@ TEST(iswascii, examples)
 
 TEST(iswalnum, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -133,7 +133,7 @@ TEST(iswalnum, examples)
 
 TEST(iswalpha, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -160,7 +160,7 @@ TEST(iswalpha, examples)
 
 TEST(iswblank, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -185,7 +185,7 @@ TEST(iswblank, examples)
 
 TEST(iswcntrl, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -211,6 +211,8 @@ TEST(iswcntrl, examples)
 
 TEST(iswctype, good)
 {
+  REVERT_TO_C_LOCALE();
+
   wctype_t wt = rs_wctype("upper");
   ASSERT_NE((wctype_t)0, wt);
   ASSERT_TRUE(rs_iswctype('A', wt));
@@ -219,6 +221,8 @@ TEST(iswctype, good)
 
 TEST(iswctype, bad)
 {
+  REVERT_TO_C_LOCALE();
+
   wctype_t wt = rs_wctype("banana");
   ASSERT_EQ((wctype_t)0, wt);
   ASSERT_FALSE(rs_iswctype('p', wt));
@@ -226,7 +230,7 @@ TEST(iswctype, bad)
 
 TEST(iswdigit, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -257,7 +261,7 @@ TEST(iswdigit, examples)
 
 TEST(iswgraph, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -283,7 +287,7 @@ TEST(iswgraph, examples)
 
 TEST(iswlower, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   for (wint_t wc = 0; wc <= 0x10ffff; ++wc) {
     SCOPED_TRACE(wc);
@@ -293,7 +297,7 @@ TEST(iswlower, examples)
 
 TEST(iswprint, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -319,7 +323,7 @@ TEST(iswprint, examples)
 
 TEST(iswpunct, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -368,7 +372,7 @@ TEST(iswpunct, examples)
 
 TEST(iswspace, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -393,7 +397,7 @@ TEST(iswspace, examples)
 
 TEST(iswupper, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   for (wint_t wc = 0; wc <= 0x10ffff; ++wc) {
     SCOPED_TRACE(wc);
@@ -403,6 +407,8 @@ TEST(iswupper, examples)
 
 TEST(iswxdigit, examples)
 {
+  REVERT_TO_C_LOCALE();
+
   ASSERT_FALSE(rs_iswalnum(WEOF));
 
   ASSERT_TRUE(rs_iswxdigit(L'0'));
@@ -435,7 +441,7 @@ TEST(iswxdigit, examples)
 
 TEST(towlower, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -466,7 +472,7 @@ TEST(towlower, examples)
 
 TEST(towupper, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   rs_errno = 0;
 
@@ -500,7 +506,7 @@ TEST(towupper, examples)
 
 TEST(towctrans, examples)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   ASSERT_EQ(wint_t('a'), rs_towctrans(L'A', rs_wctrans("tolower")));
   ASSERT_EQ(WEOF, rs_towctrans(WEOF, rs_wctrans("tolower")));
@@ -510,6 +516,8 @@ TEST(towctrans, examples)
 
 TEST(wctrans, example)
 {
+  REVERT_TO_C_LOCALE();
+
   ASSERT_TRUE(rs_wctrans("tolower") != 0);
   ASSERT_TRUE(rs_wctrans("toupper") != 0);
   ASSERT_TRUE(rs_wctrans("monkeys") == 0);
@@ -517,7 +525,7 @@ TEST(wctrans, example)
 
 TEST(wctype, classes)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   for (wint_t wc = 0; wc <= 0x10ffff; ++wc) {
     SCOPED_TRACE(wc);
@@ -587,7 +595,7 @@ TEST(wctype, classes)
 
 TEST(ctype, eof)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   ASSERT_EQ(0, rs_isalnum(EOF));
   ASSERT_EQ(0, rs_isalpha(EOF));
@@ -608,7 +616,7 @@ TEST(ctype, eof)
 
 TEST(ctype, ascii_to_wchar)
 {
-  ASSERT_STREQ("C", rs_setlocale(RS_LC_ALL, "C"));
+  REVERT_TO_C_LOCALE();
 
   for (int ch = 0; ch <= 127; ++ch) {
     SCOPED_TRACE(ch);
@@ -653,7 +661,7 @@ TEST(ctype, ascii_to_wchar)
 
 TEST(ctype, unicode_equality)
 {
-  ASSERT_STREQ("C.UTF-8", rs_setlocale(RS_LC_ALL, "C.UTF-8"));
+  REVERT_TO_C_LOCALE();
 
   for (int ch = 0; ch <= UCHAR_MAX; ++ch) {
     SCOPED_TRACE(ch);

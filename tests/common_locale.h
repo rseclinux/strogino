@@ -31,3 +31,21 @@ extern "C"
   struct lconv* rs_localeconv(void);
   struct lconv* rs_localeconv_l(ouma_locale_t);
 }
+
+#define REVERT_TO_C_LOCALE()                                                   \
+  do {                                                                         \
+    ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");                           \
+    ASSERT_NE(rs_uselocale(RS_LC_GLOBAL_LOCALE), nullptr);                     \
+  } while (false)
+
+#define REVERT_TO_UNICODE_LOCALE()                                             \
+  do {                                                                         \
+    ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C.UTF-8"), "C.UTF-8");               \
+    ASSERT_NE(rs_uselocale(RS_LC_GLOBAL_LOCALE), nullptr);                     \
+  } while (false)
+
+#define SET_GLOBAL_LOCALE(loc)                                                 \
+  do {                                                                         \
+    ASSERT_STREQ(rs_setlocale(RS_LC_ALL, loc), loc);                           \
+    ASSERT_NE(rs_uselocale(RS_LC_GLOBAL_LOCALE), nullptr);                     \
+  } while (false)

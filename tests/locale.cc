@@ -5,7 +5,7 @@
 
 TEST(localeconv, posix)
 {
-  rs_uselocale(RS_LC_GLOBAL_LOCALE);
+  REVERT_TO_C_LOCALE();
 
   struct lconv* lconv = rs_localeconv();
 
@@ -625,7 +625,8 @@ TEST(newlocale, good_misc)
 
   rs_errno = 0;
 
-  ouma_locale_t locale3 = rs_newlocale(RS_LC_COLLATE_MASK | RS_LC_NUMERIC_MASK, "en-AU", 0);
+  ouma_locale_t locale3 =
+    rs_newlocale(RS_LC_COLLATE_MASK | RS_LC_NUMERIC_MASK, "en-AU", 0);
   ASSERT_NE(nullptr, locale3);
   ASSERT_NE(ENOENT, rs_errno);
   ASSERT_STREQ(rs_getlocalename_l(RS_LC_COLLATE, locale), "en-AU");
@@ -635,6 +636,7 @@ TEST(newlocale, good_misc)
 
 TEST(uselocale, example)
 {
+  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
   rs_uselocale(RS_LC_GLOBAL_LOCALE);
 
   ouma_locale_t original = rs_uselocale(nullptr);
@@ -665,6 +667,7 @@ TEST(getlocalename_l, good)
     "MONETARY=en_US.UTF-8;LC_NUMERIC=en_US.UTF-8;LC_TIME=en_US.UTF-8",
     rs_getlocalename_l(RS_LC_ALL, new_locale));
 
+  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
   ASSERT_STREQ(rs_getlocalename_l(RS_LC_ALL, RS_LC_GLOBAL_LOCALE), "C");
   ASSERT_STREQ(rs_getlocalename_l(RS_LC_CTYPE, RS_LC_GLOBAL_LOCALE), "C");
 
@@ -684,8 +687,6 @@ TEST(getlocalename_l, bad)
 
 TEST(duplocale, example)
 {
-  rs_uselocale(RS_LC_GLOBAL_LOCALE);
-
   ouma_locale_t n1 = rs_newlocale(RS_LC_ALL_MASK, "en_US", nullptr);
   ASSERT_NE(n1, nullptr);
 

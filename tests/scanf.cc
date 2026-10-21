@@ -206,7 +206,7 @@ TEST(sscanf, integers)
   const sscanf_test<char>* stc;
   char input[16];
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   memset(input, '\0', sizeof(input));
 
@@ -427,13 +427,14 @@ _eq(long double epsilon, long double a, long double b)
 
 TEST(sscanf, floats)
 {
+  REVERT_TO_C_LOCALE();
+
   char buf[128];
   long double ld = 0.0;
   double d = 0.0;
   float f = 0.0;
 
   buf[0] = '\0';
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
 
   ASSERT_EQ(1, rs_sscanf("3.141592", "%e", &f));
   ASSERT_TRUE(eq(FLT, f, 3.141592));
@@ -518,7 +519,7 @@ TEST(sscanf, floats)
   ASSERT_EQ(1, rs_sscanf("1,23", "%le", &d));
   ASSERT_TRUE(d == 1.23);
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   int ret_val;
   float result = 0;
@@ -729,7 +730,7 @@ TEST(sscanf, floats_inf_nan)
   double d = 0.0;
   float f = 0.0;
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   ASSERT_EQ(1, rs_sscanf("-Inf", "%le", &d));
   ASSERT_TRUE(d < 0.0 && std::isinf(d));
@@ -776,7 +777,7 @@ TEST(sscanf, floats_rounding)
   long double ld = 0.0;
   double d = 0.0;
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   ASSERT_EQ(0, fesetround(FE_DOWNWARD));
 
@@ -850,7 +851,7 @@ TEST(sscanf, floats_rounding)
 
 TEST(sscanf, http_version)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   int major, minor;
   ASSERT_EQ(2, rs_sscanf("HTTP/1.0", "HTTP/%d.%d%c", &major, &minor, nullptr));
@@ -860,7 +861,7 @@ TEST(sscanf, http_version)
 
 TEST(sscanf, numbered_arguments)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   int value1, value2;
   ASSERT_EQ(2, rs_sscanf("12345 67890", "%1$d%2$d", &value1, &value2));
@@ -876,7 +877,7 @@ TEST(sscanf, smoke)
 {
   fesetround(FE_TONEAREST);
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   {
     int i;
@@ -947,7 +948,7 @@ TEST(sscanf, smoke)
 
 TEST(sscanf, character)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   int result;
   char ch;
@@ -961,7 +962,7 @@ TEST(sscanf, character)
 
 TEST(sscanf, allocated_character)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   int result;
   char* ch = nullptr;
@@ -976,7 +977,7 @@ TEST(sscanf, allocated_character)
 
 TEST(sscanf, wide_character)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C.UTF-8"), "C.UTF-8");
+  REVERT_TO_C_LOCALE();
 
   int result;
   wchar_t ch;
@@ -998,7 +999,7 @@ TEST(sscanf, wide_character)
 
 TEST(sscanf, allocated_wide_character)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C.UTF-8"), "C.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
 
   int result;
   wchar_t* ch = nullptr;
@@ -1021,7 +1022,7 @@ TEST(sscanf, allocated_wide_character)
 
 TEST(sscanf, characters)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   // Parse 5 characters at once.
   int before;
@@ -1036,7 +1037,7 @@ TEST(sscanf, characters)
 
 TEST(sscanf, allocated_characters)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   char* out;
   ASSERT_EQ(1, rs_sscanf("Hello", "%5mc", &out));
@@ -1050,7 +1051,7 @@ TEST(sscanf, allocated_characters)
 
 TEST(sscanf, wide_characters)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C.UTF-8"), "C.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
 
   // Parse 2 characters at once.
   int before;
@@ -1068,7 +1069,7 @@ TEST(sscanf, wide_characters)
 
 TEST(sscanf, allocated_wide_characters)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C.UTF-8"), "C.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
 
   wchar_t* out;
   ASSERT_EQ(1, rs_sscanf("😊😎", "%2mlc", &out));
@@ -1081,7 +1082,7 @@ TEST(sscanf, allocated_wide_characters)
 
 TEST(sscanf, scanset)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   char str[256] = { 0 };
 
@@ -1175,7 +1176,7 @@ TEST(sscanf, scanset)
 
 TEST(sscanf, allocated_scanset)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   {
     char *p1, p2;
@@ -1212,7 +1213,7 @@ TEST(sscanf, allocated_scanset)
 
 TEST(sscanf, strings)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   int ret_val;
   char buffer[10];
@@ -1232,7 +1233,7 @@ TEST(sscanf, strings)
   ASSERT_STREQ(buffer, "abc");
   ASSERT_STREQ(buffer2, "123");
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C.UTF-8"), "C.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
 
   char str1[256] = { 0 }, str2[256] = { 0 };
   size_t n = 0;
@@ -1256,7 +1257,7 @@ TEST(sscanf, strings)
 
 TEST(sscanf, allocated_strings)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   int ret_val;
   char* buffer;
@@ -1306,7 +1307,7 @@ TEST(sscanf, allocated_strings)
 
 TEST(sscanf, wide_strings)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C.UTF-8"), "C.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
 
   int ret_val;
   wchar_t str1[256] = { 0 }, str2[256] = { 0 };
@@ -1331,7 +1332,7 @@ TEST(sscanf, wide_strings)
 
 TEST(sscanf, allocated_wide_strings)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C.UTF-8"), "C.UTF-8");
+  REVERT_TO_UNICODE_LOCALE();
 
   int ret_val;
   wchar_t *str1 = nullptr, *str2 = nullptr;
@@ -1362,7 +1363,7 @@ TEST(sscanf, allocated_wide_strings)
 
 TEST(sscanf, pointers)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   int ret_val;
   void* result;
@@ -1386,7 +1387,7 @@ TEST(sscanf, pointers)
 
 TEST(sscanf, read_bytes)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   int status = 0;
   int result = 0;
@@ -1420,7 +1421,7 @@ TEST(sscanf, read_bytes)
 
 TEST(sscanf, overflow)
 {
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   int result = 0;
 
@@ -1559,6 +1560,7 @@ static void
 do_swscanf_test(const char* loc)
 {
   ASSERT_STREQ(rs_setlocale(RS_LC_ALL, loc), loc);
+  ASSERT_NE(rs_uselocale(RS_LC_GLOBAL_LOCALE), nullptr);
 
   for (size_t n = 0; n < sizeof(swscanf_tests) / sizeof(swscanf_tests[0]);
        ++n) {
@@ -1586,7 +1588,7 @@ TEST(swscanf, example)
   do_swscanf_test("C");
   do_swscanf_test("nl_NL.UTF-8");
 
-  ASSERT_STREQ(rs_setlocale(RS_LC_ALL, "C"), "C");
+  REVERT_TO_C_LOCALE();
 
   {
     int i;
