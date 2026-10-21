@@ -22,7 +22,7 @@ use {
     string::{String, ToString}
   },
   atomic_refcell::{AtomicRef, AtomicRefCell},
-  core::{cell::UnsafeCell, ffi, fmt::Write, ptr}
+  core::{cell::SyncUnsafeCell, ffi, fmt::Write, ptr}
 };
 
 pub trait LocaleObject: Clone + Default {
@@ -205,6 +205,11 @@ impl<'a> Locale<'a> {
       numeric: AtomicRefCell::new(None),
       time: AtomicRefCell::new(None)
     }
+  }
+
+  #[inline]
+  pub fn as_ptr(&mut self) -> locale_t<'a> {
+    self as locale_t
   }
 
   #[inline]
@@ -395,30 +400,43 @@ impl<'a> Locale<'a> {
   }
 }
 
-pub struct SyncLocale {
-  inner: UnsafeCell<Locale<'static>>
+#[thread_local]
+static mut THREAD_LOCALE: Option<locale_t<'static>> = None;
+
+pub static GLOBAL_LOCALE: SyncUnsafeCell<Locale<'static>> =
+  SyncUnsafeCell::new(Locale::global());
+
+pub static DEFAULT_LOCALE: SyncUnsafeCell<Locale<'static>> =
+  SyncUnsafeCell::new(Locale::new());
+
+#[inline]
+pub fn get_global_locale() -> &'static Locale<'static> {
+  let glp = GLOBAL_LOCALE.get();
+  if glp.is_null() {
+    unsafe {
+      ptr::write(glp, Locale::global());
+    };
+  }
+  unsafe { &*glp }
 }
-unsafe impl Sync for SyncLocale {}
 
-pub static GLOBAL_LOCALE: SyncLocale =
-  SyncLocale { inner: UnsafeCell::new(Locale::global()) };
+#[inline]
+pub fn set_global_locale(loc: Locale<'static>) {
+  unsafe {
+    ptr::write(GLOBAL_LOCALE.get(), loc);
+  };
+}
 
-pub static DEFAULT_LOCALE: SyncLocale =
-  SyncLocale { inner: UnsafeCell::new(Locale::new()) };
-
-#[inline(always)]
+#[inline]
 pub fn get_real_locale(locale: locale_t<'static>) -> &'static Locale<'static> {
   unsafe {
     match locale as intptr_t {
-      | 0 => &*DEFAULT_LOCALE.inner.get(),
-      | -1 => &*GLOBAL_LOCALE.inner.get(),
+      | 0 => &*DEFAULT_LOCALE.get(),
+      | -1 => &mut *GLOBAL_LOCALE.get(),
       | _ => &*locale
     }
   }
 }
-
-#[thread_local]
-static mut THREAD_LOCALE: Option<locale_t<'static>> = None;
 
 #[inline]
 pub fn get_thread_locale() -> &'static Locale<'static> {

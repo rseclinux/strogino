@@ -976,7 +976,7 @@ TEST(sscanf, allocated_character)
 
 TEST(sscanf, wide_character)
 {
-  REVERT_TO_C_LOCALE();
+  REVERT_TO_UNICODE_LOCALE();
 
   int result;
   wchar_t ch;

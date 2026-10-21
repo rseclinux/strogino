@@ -26,7 +26,8 @@
   ascii_char_variants,
   f128,
   core_intrinsics,
-  phantom_variance_markers
+  phantom_variance_markers,
+  sync_unsafe_cell
 )]
 
 #[macro_use]
